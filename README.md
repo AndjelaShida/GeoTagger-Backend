@@ -74,11 +74,11 @@ You need to create a log of all the actions a user performs on the frontend and 
 - user inputs (textbox, dropdown, checkbox, radio changes)
 
 **You need to store in the database:**
-- the user
-- the action (click, scroll, added value, changed value, removed value)
+- user
+- action (click, scroll, added value, changed value, removed value)
 - component type (link, button, input type (null for scroll))
-- the new value
-- the location of the action (URL)
+- new value
+- location of the action (URL)
 
 Then allow the administrator to view the last 100 entities saved. Since there is a relatively large number of actions stored in the database, consider how to structure the database, what data types to use, and what improvements can be done in the database so that it will provide data quicker. Also, consider how to separate the administrator from the normal users.
 There is no Figma design for this part, so you can customize the design for this part yourself so it makes sense. Do not spend too much time on the design of this part
