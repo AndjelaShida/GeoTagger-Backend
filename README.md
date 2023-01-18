@@ -8,7 +8,7 @@ Create a Full-stack application that allows users to upload an image and mark th
 Registered users then try to guess where the image was taken by placing a pin on the Google map. As a result, the app returns how accurately he chose the location (error distance). 
 
 **Technologies you will use** :
-Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Express, React, Docker, Amazon AWS, Amazon S3, Git, GitHub, Jest, PostgreSQL, TypeORM, JWT, Postman, Swagger, Trello
+Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Express, React, Docker, Amazon AWS, Amazon S3, Git, GitHub, Jest, PostgreSQL, TypeORM, JWT, Swagger, Trello
 
 <img alt="image" src="https://brotherants.com/skillupmentor/images/image5.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image7.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/mui-icon.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image12.png" width="25px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image17.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image4.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image3.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image19.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image1.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image11.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image18.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image16.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/aws-s3-icon.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image2.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image10.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/jest-icon.jpeg" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image8.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image15.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image14.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image9.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/swagger.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image13.png" width="30px" />
 
@@ -39,7 +39,6 @@ Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Ex
 - Latest stable NestJS with Express.js framework (**Typescript**)
 - Git &amp; GitHub (create separate Git for backend and frontend)
 - Latest stable ReactJS for frontend (with **TypeScript** )
-- Postman for testing API
 - MaterialUI
 - Jest for tests
 - Trello (Breakdown task, Estimate time for task)
