@@ -4,18 +4,26 @@
 
 **Short description** :
 
-Create a Full-stack application that allows users to upload an image and mark the exact location on the Google map where the image was taken.
-Registered users then try to guess where the image was taken by placing a pin on the Google map. As a result, the app returns how accurately he chose the location (error distance). 
+Create a Full-stack application that allows users to upload an image and mark the exact location on the Google map where the image was taken. Registered users then try to guess where the image was taken by placing a pin on the Google map. As a result, the app returns how accurately he chose the location (error distance).
+
+User can play Guess game only if he has game points. With registration user gets 10 points. For every location that user uploads – user gets 10 points. For every guess user loses points:
+- First guess per same location: 1 point
+- Second guess per same location: 2 points 
+- Third and every other guess per same location: 3 points
+
 
 **Technologies you will use** :
-Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Express, React, Docker, Amazon AWS, Amazon S3, Git, GitHub, Jest, PostgreSQL, TypeORM, JWT, Swagger, Trello
+Html, Css, Bootstrap, MUI (ex. MaterialUI), Tailwind, Figma, JavaScript, Typescript, Node, NestJS, Express, React, Docker, Amazon AWS, Amazon S3, Git, GitHub, Jest, PostgreSQL, Prisma, JWT, Swagger, Trello, Redux Toolkit, RTK Query.
 
-<img alt="image" src="https://brotherants.com/skillupmentor/images/image5.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image7.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/mui-icon.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image12.png" width="25px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image17.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image4.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image3.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image19.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image1.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image11.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image18.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image16.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/aws-s3-icon.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image2.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image10.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/jest-icon.jpeg" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image8.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image15.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image14.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image9.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/swagger.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image13.png" width="30px" />
+<img alt="image" src="https://brotherants.com/skillupmentor/images/image5.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image7.png" width="30px" /> <img alt="image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Bootstrap_logo.svg/800px-Bootstrap_logo.svg.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/mui-icon.png" width="30px" /> <img alt="image" src="https://d3mxt5v3yxgcsr.cloudfront.net/courses/7443/course_7443_image.jpg" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image12.png" width="25px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image17.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image4.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image3.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image19.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image1.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image11.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image18.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image16.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/aws-s3-icon.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image2.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image10.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/jest-icon.jpeg" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image8.png" width="30px" /> <img alt="image" src="https://d2eip9sf3oo6c2.cloudfront.net/tags/images/000/001/287/square_480/prismaHD.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image14.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image9.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/swagger.png" width="30px" /> <img alt="image" src="https://brotherants.com/skillupmentor/images/image13.png" width="30px" /> <img alt="image" src="https://miro.medium.com/v2/resize:fit:1200/1*AJpFZrofvxMn3MHh9p3i_Q.jpeg" width="30px" /> <img alt="image" src="https://res.cloudinary.com/practicaldev/image/fetch/s--zQbdpCQF--/c_imagga_scale,f_auto,fl_progressive,h_1080,q_auto,w_1080/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/yxh98gmx3eydfi4kbw08.png" width="30px" />
 
 ***Alert:***
 
 - Use Swagger instead of Postman (https://docs.nestjs.com/openapi/introduction)
-- There is Special part of project
+- Use Prisma instead of TypeORM.
+- Add OAuth for registration and login.
+- Deploy to AWS is a must.
+- EndToEnd test is a must.
 
 
 **Pre-requirements** :
@@ -29,7 +37,7 @@ Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Ex
 - Figma design and UX for frontend
 - Tests for users are prepared
 - API in NestJS for user prepared
-- Credentials for PostgreSQL DBMS
+- Credentials for PostgreSQL DBMS (use local database and before deploying ask for credentials to our database).
 - Trello template for managing tasks
 
 **Use** :
@@ -39,16 +47,20 @@ Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Ex
 - Latest stable NestJS with Express.js framework (**Typescript**)
 - Git &amp; GitHub (create separate Git for backend and frontend)
 - Latest stable ReactJS for frontend (with **TypeScript** )
-- MaterialUI
+- MUI or Bootstrap or Tailwind (choose different technology that you used for 01-project)
 - Jest for tests
 - Trello (Breakdown task, Estimate time for task)
+- Redux Toolkit for state management in ReactJS.
+- RTK Query for data manipulation in ReactJS.
 
 
 **Required functionality** :
 - JWT token authentication
 - Implement forgot password functionality (send reset token to user email)
+- Add latest OAuth (google, facebook).
 - File upload on Amazon S3
 - JSON server responses
+- Implement general error handling. On root component add ModalComponent that will display general server error, if something goes wrong with any request. Displaying of this modal component can be triggered from anywhere in the app (use state management).
 - Docker
 -  Docker: For local environment configuration (database, env vars, ...)
 -  Docker: Dockerfile for building a docker image from the application code
@@ -65,6 +77,7 @@ Html, Css, MUI (ex. MaterialUI), Figma, JavaScript, Typescript, Node, NestJS, Ex
 - Figma pixel perfect design
 - Swagger for API documentation
 - Use .ENV for database credentials (security).
+- **Write at least one custom react hook (example: https://www.w3schools.com/react/react_customhooks.asp).**
 
 **Special part (required)**
 You need to create a log of all the actions a user performs on the frontend and store them in the database. The actions you need to log are:
