@@ -66,6 +66,7 @@ Html, Css, Bootstrap, MUI (ex. MaterialUI), Tailwind, Figma, JavaScript, Typescr
 -  Docker: Dockerfile for building a docker image from the application code
 - Deploy backend Docker Container on AWS
 - Deploy frontend on AWS S3
+- **Think about security issues that can emerge (https://owasp.org/www-project-top-ten).**
 - Tests (backend only) - EndToEnd test
 -  Tests: All your endpoints must have at least one test, multiple edge case tests are a bonus
 -  Tests: All tests must pass
