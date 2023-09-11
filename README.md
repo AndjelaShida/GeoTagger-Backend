@@ -103,7 +103,7 @@ There is no Figma design for this part, so you can customize the design for this
 - Branch each task in Github (GitFlow).
 
 **Design and explanation** :
-- [Link to Figma](https://www.figma.com/file/fNO8cxMjk7blcQP4BbK9PT/Geotagger(Updated)?node-id=0%3A1)
+- [Link to Figma](https://www.figma.com/file/DmN8FJw8sB664weoiYY7na/Geotagger-2023?type=design&mode=design)
 - For location save only latitude and longitude (location name is optional).
 
 **Description** :
