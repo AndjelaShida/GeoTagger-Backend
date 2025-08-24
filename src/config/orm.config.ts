@@ -10,9 +10,7 @@ export const typeOrmModuleOptions: TypeOrmModuleOptions = {
   autoLoadEntities: true,
   migrationsTableName: 'migrations',
   migrations: ['dist/migrations/*.js'],
-  cli: {
-    migrationsDir: 'src/migrations',
-  },
+
 };
 
 export default typeOrmModuleOptions;
