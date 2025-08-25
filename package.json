@@ -65,7 +65,7 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "5.9"
+    "typescript": "^5.9.2"
   },
   "jest": {
     "moduleFileExtensions": [
