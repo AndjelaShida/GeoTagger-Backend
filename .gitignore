@@ -39,6 +39,7 @@ lerna-debug.log*
 .env.development
 .env.production
 .env.Tests
+.env-vars.contant.ts
 
 #Don't ignore
 !.env.text.example

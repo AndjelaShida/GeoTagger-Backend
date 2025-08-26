@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { JwtPayloadDto } from './dto/jwt-payload.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 
 
@@ -18,7 +18,7 @@ export class AuthService {
   ) {}
 
   async register(username: string, password: string) {
-    const user = await this.prisma.user.findUnique({ //prisma.user znaci
+    const user = await this.prisma.user.findUnique({ 
       where: { username },
     });
 

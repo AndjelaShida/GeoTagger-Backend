@@ -18,11 +18,12 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    prisma = await moduleFixture.get('UserRepository');
+    prisma = await moduleFixture.get(PrismaService);
     await app.init();
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany({});
     await app.close();
   });
 
