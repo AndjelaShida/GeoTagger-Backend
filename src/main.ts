@@ -2,6 +2,7 @@ import { ValidationPipe, INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './exceptions/all-exceptions.filter';
 
 const initSwagger = (app: INestApplication) => {
   const config = new DocumentBuilder()
@@ -26,8 +27,12 @@ const initValidation = (app: INestApplication) =>
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  //Swagger i ValidationPipe
   initSwagger(app);
   initValidation(app);
+
+  //Global error handling
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.listen(3000);
 }

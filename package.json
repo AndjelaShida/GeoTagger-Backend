@@ -19,7 +19,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./jest-e2e.json --forceExit"
-
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
@@ -40,7 +39,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7",
-    "swagger-ui-express": "^4.3.0",
+    "swagger-ui-express": "^4.6.3",
     "typeorm": "^0.3.26"
   },
   "devDependencies": {
