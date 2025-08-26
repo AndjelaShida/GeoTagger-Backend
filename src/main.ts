@@ -3,6 +3,9 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './exceptions/all-exceptions.filter';
+import * as helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
 
 const initSwagger = (app: INestApplication) => {
   const config = new DocumentBuilder()
@@ -26,6 +29,23 @@ const initValidation = (app: INestApplication) =>
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+//CORS-mi omogucava da kontrolisem koje domene mogu da pristupaju mojoj API aplikaciji
+    app.enableCors({
+      origin: 'http://localhost:5000', //dozvoljeni domen
+      credentials: true,
+    });
+
+    //helmet
+    app.use(helmet());
+
+    //rate limiting
+    app.use(
+      rateLimit({
+        windowMs: 15 * 60 * 1000, //15min
+        max: 100, // max 100 zahteva po UP u 15min
+        message: 'Too many request from this IP, please try again later',
+      }),
+    );
 
   //Swagger i ValidationPipe
   initSwagger(app);
