@@ -2,12 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { Repository } from 'typeorm/repository/Repository';
-import { User } from '../src/entities/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
-  let userRepository: Repository<User>;
+  let prisma: PrismaService;
 
   let userToken;
 
@@ -17,7 +18,7 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    userRepository = await moduleFixture.get('UserRepository');
+    prisma = await moduleFixture.get('UserRepository');
     await app.init();
   });
 
@@ -72,6 +73,7 @@ describe('AppController (e2e)', () => {
   // });
 
   afterAll(async () => {
-    await userRepository.query('DELETE FROM "user"');
+    await prisma.user.deleteMany({});
+    await app.close();
   });
 });

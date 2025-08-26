@@ -1,0 +1,34 @@
+name: CI/CD
+
+on: #workflow se pokrece kad pushujem na deploy
+  push:
+    branches:
+      - deploy   # ili main ili neka treca branc
+  pull_request:
+    branches:
+      - deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository #GitHub Actions uzima moj kod
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js #Koristi verziju Noda-a koju imam lokalno
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20  # ili verzija koju koristim lokalno
+
+      - name: Install dependencies #npm install
+        run: npm install
+
+      - name: Generate Prisma Client #vazno za Prisma, inace build nece raditi
+        run: npx prisma generate
+
+      - name: Build NestJS project #npm run build kampajlira TS u JS
+        run: npm run build
+
+      - name: Run tests #pokrece testove ako ih dodam ranije
+        run: npm run test:e2e
