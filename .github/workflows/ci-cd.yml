@@ -53,4 +53,4 @@ jobs:
         env:
           DATABASE_URL: "postgresql://postgres:Gandijeva85@localhost:5432/geotagger_test"
           JWT_SECRET: testsecret
-        run: npm run test:e2e -- --config ./jest-e2e.json
+        run: npm run test:e2e 
