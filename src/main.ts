@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './exceptions/all-exceptions.filter';
-import * as helmet from 'helmet';
+import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
 
@@ -54,7 +54,10 @@ async function bootstrap() {
   //Global error handling
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  const port = 3000;
   await app.listen(3000);
+
+  console.log(`🚀 Server is running on http://localhost:${port}`);
 }
 
 bootstrap();
