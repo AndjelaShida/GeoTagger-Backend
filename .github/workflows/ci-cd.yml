@@ -1,6 +1,6 @@
 name: CI/CD
 
-on: #workflow se pokrece kad pushujem na deploy
+on: #workflow se pokrece kad pushujem na branch
   push:
     branches:
       - deploy
@@ -15,6 +15,21 @@ on: #workflow se pokrece kad pushujem na deploy
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services: #Postgres servis za testove
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Gandijeva85
+          POSTGRES_DB: geotagger_test
+        options: >-
+          --health-cmd "pg_isready -U postgres -d geotagger_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout repository #GitHub Actions uzima moj kod
@@ -34,5 +49,8 @@ jobs:
       - name: Build NestJS project #npm run build kampajlira TS u JS
         run: npm run build
 
-      - name: Run tests #pokrece testove ako ih dodam ranije
-        run: npm run test:e2e
+      - name: Run e2e tests #pokrece e2e testove sa postavljenim env varijablama
+        env:
+          DATABASE_URL: "postgresql://postgres:Gandijeva85@localhost:5432/geotagger_test"
+          JWT_SECRET: testsecret
+        run: npm run test:e2e -- --config ./jest-e2e.json
