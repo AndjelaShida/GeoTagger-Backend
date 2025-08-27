@@ -46,6 +46,11 @@ jobs:
       - name: Generate Prisma Client #vazno za Prisma, inace build nece raditi
         run: npx prisma generate
 
+      - name: Run Prisma migrations
+        env:
+          DATABASE_URL: "postgresql://postgres:Gandijeva85@localhost:5432/geotagger_test"
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
       - name: Build NestJS project #npm run build kampajlira TS u JS
         run: npm run build
 
