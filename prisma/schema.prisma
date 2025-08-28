@@ -4,13 +4,14 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// [] -više
+
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
-
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -21,4 +22,48 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  locations Location[] // 1 user ima vise Location(OneToMany)
+  guesses   Guess[] //1 user ima vise Guess(OneToMany)
+  logs      ActionLog[] // //1 user ima vise ActionLog(OneToMany)
+}
+
+model Location {
+  id        Int      @id @default(autoincrement())
+  lat       Float //geografska sirina
+  lon       Float //geografska duzina
+  imageUrl  String //string jer se cuva link slike(npr na amazon s3 url)
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id]) //svaka location pripada 1 useru
+  userId  Int //vise lokacija moze pripadati 1 useru
+  guesses Guess[] //svaka Location moze imati vise Guess
+}
+
+model Guess {
+  id        Int      @id @default(autoincrement())
+  lat       Float
+  lon       Float
+  distance  Float
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id]) //svaki pogodak ima 1 usera
+  userId Int //vise pogodaka moze pripadati 1 useru
+
+  location Location @relation(fields: [locationId], references: [id]) //svaki pogodak je za 1 lokaciju
+  locationId Int //foregin key) -> Location.id, vise pogodaka moze pripradati istoj lokaciji
+
+}
+
+model ActionLog { //tabela za logovanje svih korisnickih akcija na frontend-u
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  component String?
+  newValue  String?
+  url       String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])//1 akcija ima 1 usera
+
 }
