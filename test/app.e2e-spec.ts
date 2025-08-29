@@ -37,7 +37,7 @@ describe('AppController (e2e)', () => {
   it('/auth/register (POST) should register new user', () => {
     return request(app.getHttpServer())
       .post('/auth/register')
-      .send({ username: 'newUser', password: 'test123' })
+      .send({ username: 'newUser', password: 'test123', email: 'newuser@example.com' })
       .expect(201);
   });
 

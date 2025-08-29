@@ -4,21 +4,17 @@ import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { ValidateUserDto } from 'src/user/dto/validate-user.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+
 
 @ApiTags('auth')
 @Controller('auth')
-@UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   async login(@Body() dto: UserLoginDto) {
-    const user = await this.authService.validateUser(
-      dto.username,
-      dto.password,
-    );
-    return this.authService.login(user);
+  
+    return this.authService.login(dto);
   }
 
   @Post('register')

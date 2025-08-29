@@ -14,6 +14,5 @@ export class UserRegisterDto {
 
   @ApiProperty()
   @IsString()
-  @MinLength(6)
   email: string;
 }

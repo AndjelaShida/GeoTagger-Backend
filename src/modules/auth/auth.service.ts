@@ -49,9 +49,9 @@ export class AuthService {
 
   async login( dto: UserLoginDto ) {
     const user = await this.validateUser(dto.username, dto.password);
-    
+
     const payload: JwtPayloadDto = {
-      username: dto.username,
+      username: user.username,
       sub: user.id,
     };
     return {
@@ -64,6 +64,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { username },
     });
+    console.log('user from db:', user);
 
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found`);
