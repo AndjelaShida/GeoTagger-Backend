@@ -11,4 +11,9 @@ export class UserRegisterDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(6)
+  email: string;
 }

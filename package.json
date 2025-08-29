@@ -19,7 +19,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./jest-e2e.json --forceExit"
-  
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
@@ -35,6 +34,7 @@
     "class-validator": "^0.14.2",
     "express-rate-limit": "^8.0.1",
     "helmet": "^8.1.0",
+    "nodemailer": "^7.0.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",

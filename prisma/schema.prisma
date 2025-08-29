@@ -19,9 +19,13 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
+  email     String   @unique
   password  String
+  points    Int      @default(10) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resetToken String? 
+  resetTokenExpiry DateTime? //vreme do kad token vazi
 
   locations Location[] // 1 user ima vise Location(OneToMany)
   guesses   Guess[] //1 user ima vise Guess(OneToMany)

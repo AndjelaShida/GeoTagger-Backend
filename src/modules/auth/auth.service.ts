@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto'; //nodejs ugradjeni model za generisanje bezbednih slucajnih brojeva/hashova/enkripciju i dekiprciju
+import * as nodemailer from 'nodemailer';
 import { JwtPayloadDto } from './dto/jwt-payload.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-
-
+import { from, Subject } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -17,8 +18,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(username: string, password: string) {
-    const user = await this.prisma.user.findUnique({ 
+  async register(username: string, password: string, email: string) {
+    const user = await this.prisma.user.findUnique({
       where: { username },
     });
 
@@ -28,10 +29,12 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-   const createdUser = await this.prisma.user.create({
+    const createdUser = await this.prisma.user.create({
       data: {
         username,
+        email,
         password: hashedPassword,
+        points: 10,
       },
     });
 
@@ -42,8 +45,7 @@ export class AuthService {
     return safeUser;
   }
 
-
-  async login(user: { id:number, username: string }) {
+  async login(user: { id: number; username: string; email: string }) {
     const payload: JwtPayloadDto = { username: user.username, sub: user.id };
     return {
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -69,5 +71,51 @@ export class AuthService {
     delete user.password;
 
     return user;
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) throw new BadRequestException('User not found');
+
+    const token = this.generateResetToken();
+    //cuvamo token i vreme isteka
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        resetToken: token,
+        resetTokenExpiry: new Date(Date.now() + 60 * 60 * 1000), //1h od sad se cuva token
+      },
+    });
+
+    await this.sendResetEmail(user.email, token);
+
+    return { message: 'Reset email sent' };
+  }
+
+  private generateResetToken(): string {
+    return crypto.randomBytes(32).toString('hex'); // funkcija pravi token od 64 karaktera
+  }
+
+  private async sendResetEmail(email: string, token: string) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+
+    await transporter.sendMail({
+      from: '"GeoTagger" <no-reply@geotagger.com>',
+      to: email,
+      subject: 'Reset your password',
+      text: `Click here to reset your password: ${resetLink}`,
+      html: `<a href="${resetLink}">Reset Password</a>`,
+    });
+
+    console.log(`Reset email sent to ${email}`) ;
   }
 }
