@@ -4,7 +4,8 @@ import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import * as path from 'path';
-import { cwd } from 'process';
+import { UserModule } from './user/user.module';
+
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { cwd } from 'process';
     }),
     PrismaModule,
     AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
 })

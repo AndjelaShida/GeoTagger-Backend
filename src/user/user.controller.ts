@@ -44,7 +44,7 @@ export class UserController {
     const pageNumber = page ? parseInt(page, 10) : undefined; //ako page postoji, raid ono pre : , ako ne postoji uzmi vrednost posle :
     const limitNumber = limit ? parseInt(limit, 10) : undefined ; 
     
-    return this.userService.getLocations(page, limit);
+    return this.userService.getLocations(pageNumber, limitNumber);
    }
 
    @Delete('me')
