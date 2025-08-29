@@ -1,10 +1,14 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
-import { ValidateUserDto } from 'src/user/dto/dto-validateUser.dto';
+import { ValidateUserDto } from 'src/user/dto/validate-user.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 
+@ApiTags('auth')
 @Controller('auth')
+@UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -19,7 +23,7 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() dto: UserRegisterDto) {
-    return this.authService.register(dto.username, dto.password, dto.email);
+    return this.authService.register(dto);
   }
 
   @Post('auth/forgot-password')

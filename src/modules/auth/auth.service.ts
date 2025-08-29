@@ -9,7 +9,9 @@ import * as crypto from 'crypto'; //nodejs ugradjeni model za generisanje bezbed
 import * as nodemailer from 'nodemailer';
 import { JwtPayloadDto } from './dto/jwt-payload.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { from, Subject } from 'rxjs';
+import { UserRegisterDto } from './dto/user-register.dto';
+import { UserLoginDto } from './dto/user-login.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -18,21 +20,21 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(username: string, password: string, email: string) {
+  async register(dto: UserRegisterDto) {
     const user = await this.prisma.user.findUnique({
-      where: { username },
+      where: { username: dto.username },
     });
 
     if (user) {
-      throw new BadRequestException(`${username} is already taken`);
+      throw new BadRequestException(`${dto.username} is already taken`);
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     const createdUser = await this.prisma.user.create({
       data: {
-        username,
-        email,
+        username: dto.username,
+        email: dto.email,
         password: hashedPassword,
         points: 10,
       },
@@ -45,8 +47,13 @@ export class AuthService {
     return safeUser;
   }
 
-  async login(user: { id: number; username: string; email: string }) {
-    const payload: JwtPayloadDto = { username: user.username, sub: user.id };
+  async login( dto: UserLoginDto ) {
+    const user = await this.validateUser(dto.username, dto.password);
+    
+    const payload: JwtPayloadDto = {
+      username: dto.username,
+      sub: user.id,
+    };
     return {
       // eslint-disable-next-line @typescript-eslint/camelcase
       access_token: this.jwtService.sign(payload),

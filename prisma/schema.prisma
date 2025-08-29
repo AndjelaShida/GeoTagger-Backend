@@ -25,7 +25,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   resetToken String? 
-  resetTokenExpiry DateTime? //vreme do kad token vazi
+  resetTokenExpiry DateTime? //vreme do kad token
 
   locations Location[] // 1 user ima vise Location(OneToMany)
   guesses   Guess[] //1 user ima vise Guess(OneToMany)
