@@ -12,7 +12,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -47,7 +46,7 @@ export class AuthService {
     return safeUser;
   }
 
-  async login( dto: UserLoginDto ) {
+  async login(dto: UserLoginDto) {
     const user = await this.validateUser(dto.username, dto.password);
 
     const payload: JwtPayloadDto = {
@@ -102,6 +101,51 @@ export class AuthService {
     return { message: 'Reset email sent' };
   }
 
+  async loginWithOAuth(oauthData: {
+    provider: string;
+    providerId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+  }) {
+    const { provider, providerId, email, firstName, lastName, picture } =
+      oauthData;
+
+    // proveri da li već postoji UserOfAuth
+    let userOfAuth = await this.prisma.userOfAuth.findFirst({
+      where: { provider, providerId },
+      include: { user: true },
+    });
+
+    // Ako ne postoji -> kreiraj novog korisnika + UserOfAuth
+    if (!userOfAuth) {
+      const user = await this.prisma.user.create({
+        //pravljenje pravog korisnickog naloga
+        data: {
+          username: firstName + lastName, // ili neki drugi default username
+          email,
+          password: null,
+          points: 10, // početni poeni za registrovanog korisnika
+        },
+      });
+
+      userOfAuth = await this.prisma.userOfAuth.create({
+        //veza izmedju korisnika i provajdera(da znamo da je taj korisnik logovan preko googla)
+        data: { provider, providerId, userId: user.id },
+        include: { user: true },
+      });
+    }
+    //Ovaj deo povezuje OAuth korisnika sa internim korisničkim objektom i odmah mu generiše JWT token za dalju autentifikaciju.
+    const payload = {
+      sub: userOfAuth.user.id,
+      username: userOfAuth.user.username,
+    }; //payload je obj koji ce biti ugradjen u JWT token
+    const token = this.jwtService.sign(payload); //jwtService.sign() uzima payload i generiše JWT token
+
+    return { access_token: token, user: userOfAuth.user };
+  }
+
   private generateResetToken(): string {
     return crypto.randomBytes(32).toString('hex'); // funkcija pravi token od 64 karaktera
   }
@@ -124,6 +168,6 @@ export class AuthService {
       html: `<a href="${resetLink}">Reset Password</a>`,
     });
 
-    console.log(`Reset email sent to ${email}`) ;
+    console.log(`Reset email sent to ${email}`);
   }
 }
