@@ -21,7 +21,7 @@ export class UserController {
     return this.userService.getProfile(username, email);
    }
 
-   @Put('me')
+   @Put('update')
    async update(
     @CurrentUser() user: User, 
     @Body() dto: UpdateUserDto

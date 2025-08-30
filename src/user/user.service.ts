@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {  Prisma, User } from 'generated/prisma/client';
 import * as bcrypt from 'bcrypt';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RESPONSE_PASSTHROUGH_METADATA } from '@nestjs/common/constants';
 
 @Injectable()
 export class UserService {
@@ -23,6 +25,40 @@ export class UserService {
 
     return user;
   }
+
+
+async resetPassword(dto: ResetPasswordDto) {
+  const { token, newPassword } = dto ; //izlvacimo polja iz DTO-a
+
+  const user = await this.prisma.user.findFirst({
+    where: { resetToken: token },
+  });
+
+  if (!user) {
+    throw new BadRequestException('Invalid or non-existing reset token.');
+  }
+
+  // Provera isteka tokena
+  if (!user.resetTokenExpiry || user.resetTokenExpiry.getTime() < Date.now()) { // || -ili8dovoljno je da jedan uslov bude istinit da bi if bio istinit)
+    throw new BadRequestException('Reset token has expired.');
+  }
+
+  // Hešuj novu lozinku
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Ažuriraj lozinku i očisti token i expiry
+  await this.prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiry: null,
+    },
+  });
+
+  return { message: 'Password successfully reset' };
+}
+
 
   async update(currentUser: User, dto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({

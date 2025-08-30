@@ -17,19 +17,29 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  points    Int      @default(10) 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  resetToken String? 
+  id               Int       @id @default(autoincrement())
+  username         String    @unique
+  email            String    @unique
+  password         String
+  points           Int       @default(10)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  resetToken       String?
   resetTokenExpiry DateTime? //vreme do kad token
 
   locations Location[] // 1 user ima vise Location(OneToMany)
   guesses   Guess[] //1 user ima vise Guess(OneToMany)
   logs      ActionLog[] // //1 user ima vise ActionLog(OneToMany)
+
+  UserOfAuth UserOfAuth[]
+}
+
+model UserOfAuth {
+  id         Int    @id @default(autoincrement())
+  provider   String
+  providerId String
+  user      User    @relation(fields: [userId], references: [id])
+  userId     Int
 }
 
 model Location {
@@ -51,15 +61,14 @@ model Guess {
   distance  Float
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id]) //svaki pogodak ima 1 usera
+  user   User @relation(fields: [userId], references: [id]) //svaki pogodak ima 1 usera
   userId Int //vise pogodaka moze pripadati 1 useru
 
-  location Location @relation(fields: [locationId], references: [id]) //svaki pogodak je za 1 lokaciju
+  location   Location @relation(fields: [locationId], references: [id]) //svaki pogodak je za 1 lokaciju
   locationId Int //foregin key) -> Location.id, vise pogodaka moze pripradati istoj lokaciji
-
 }
 
-model ActionLog { //tabela za logovanje svih korisnickih akcija na frontend-u
+model ActionLog {
   id        Int      @id @default(autoincrement())
   userId    Int
   action    String
@@ -68,6 +77,5 @@ model ActionLog { //tabela za logovanje svih korisnickih akcija na frontend-u
   url       String
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])//1 akcija ima 1 usera
-
+  user User @relation(fields: [userId], references: [id]) //1 akcija ima 1 usera
 }
