@@ -32,6 +32,15 @@ model User {
   logs      ActionLog[] // //1 user ima vise ActionLog(OneToMany)
 
   UserOfAuth UserOfAuth[]
+  roles Role[] @relation("UserRoles")//1 korisnik moze imati vise uloga
+}
+
+model Role {
+  id Int @id @default(autoincrement())
+  name String @unique
+  description String?
+  users User[] @relation("UserRoles") //veza sa user modelom
+
 }
 
 model UserOfAuth {
