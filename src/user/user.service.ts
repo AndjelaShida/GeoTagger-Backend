@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {  Prisma, User } from 'generated/prisma/client';
@@ -110,21 +110,17 @@ async resetPassword(dto: ResetPasswordDto) {
 
     return locations; // vraća niz lokacija
   }
-
-  async remove(currentUser: User) {
-    try {
-      return this.prisma.user.delete({
-        where: { id: currentUser.id },
-      });
-    } catch (e) {
-      // Proveravamo da li je greška “record does not exist”
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new BadRequestException('User is not found');
-      }
-      throw e; // sve ostale greske prosledjujemo dalje
-    }
+async removeUser(id: number, currentUser: User) {
+  if (currentUser.role !== 'admin' && currentUser.id !== id) {
+    throw new UnauthorizedException('You are not authorized to delete this user');
   }
+
+  try {
+    return await this.prisma.user.delete({ where: { id } });
+  } catch (e: any) {
+    if (e?.code === 'P2025') throw new NotFoundException('User not found');
+    throw e;
+  }
+}
+
 }

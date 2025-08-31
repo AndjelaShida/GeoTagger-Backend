@@ -5,8 +5,9 @@ import { CreateRoleDto } from './dto/create-role-dto';
 import { JwtAuthGuard } from 'src/modules/auth/jwt/jwt-auth.guard';
 import { Roles } from 'src/decoration/role.decorator';
 import { RoleEnum } from './role.enum';
+import { RoleGuard } from './role.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Roles(RoleEnum.ADMIN)
 @ApiTags('role')
 @Controller('role')
