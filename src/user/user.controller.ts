@@ -1,4 +1,4 @@
-import {  Body, Controller, Delete, Get, Post, Put, Query, Req } from "@nestjs/common";
+import {  Body, Controller, Delete, Get, Param, Post, Put, Query, Req } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UserService } from "./user.service";
 import { CurrentUser } from "src/decoration/current-user.decoration";
@@ -47,10 +47,11 @@ export class UserController {
     return this.userService.getLocations(pageNumber, limitNumber);
    }
 
-   @Delete('me')
-   async remove(
+   @Delete()
+async remove(
+    @Param('id') id: number,
     @CurrentUser() user: User
- ) {
-return this.userService.remove(user);
- }
+) {
+    return this.userService.removeUser(+id, user);
+}
 }
