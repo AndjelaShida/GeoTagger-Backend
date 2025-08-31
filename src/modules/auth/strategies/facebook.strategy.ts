@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-facebook";
 
-// Definišemo VerifyCallback tip lokalno
+// Definisemo VerifyCallback tip lokalno
 type VerifyCallback = (err: any, user?: any, info?: any) => void;
 
 @Injectable()
