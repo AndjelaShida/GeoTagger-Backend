@@ -17,7 +17,7 @@ datasource db {
 }
 
 model User {
-  id               String       @id @default(cuid())
+  id               String    @id @default(cuid())
   username         String    @unique
   email            String    @unique
   password         String
@@ -37,22 +37,22 @@ model User {
 }
 
 model Role {
-  id          String       @id @default(cuid())
+  id          String  @id @default(cuid())
   description String?
+  name        String  @unique
   users       User[]  @relation("UserRoles") //veza sa user modelom
 }
 
 model UserOfAuth {
-  id        String       @id @default(cuid())
+  id         String @id @default(cuid())
   provider   String
   providerId String
   userId     String
   user       User   @relation(fields: [userId], references: [id])
-  
 }
 
 model PasswordReset {
-  id        String       @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
   token     String   @unique
   expiresAt DateTime
@@ -63,7 +63,7 @@ model PasswordReset {
 }
 
 model Location {
-  id        String       @id @default(cuid())
+  id        String   @id @default(cuid())
   latitude  Float //geografska sirina
   longitude Float //geografska duzina
   imageUrl  String //string jer se cuva link slike(npr na amazon s3 url)
@@ -78,13 +78,13 @@ model Location {
 }
 
 model Guess {
-  id        String       @id @default(cuid())
+  id        String   @id @default(cuid())
   latitude  Float
   longitude Float
   distance  Float
   createdAt DateTime @default(now())
 
-  user   User @relation(fields: [userId], references: [id]) //svaki pogodak ima 1 usera
+  user   User   @relation(fields: [userId], references: [id]) //svaki pogodak ima 1 usera
   userId String //vise pogodaka moze pripadati 1 useru
 
   location   Location @relation(fields: [locationId], references: [id]) //svaki pogodak je za 1 lokaciju
@@ -92,7 +92,7 @@ model Guess {
 }
 
 model ActionLog {
-  id       String       @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String? //opciono-da bi se cuvali logovi i za neregistrovane korisnike
   action    String
   component String?

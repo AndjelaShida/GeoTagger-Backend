@@ -29,7 +29,7 @@ export class RoleController {
   @Get(':id')
   async findOne(@Param('id') id: string ) {
     return this.prisma.role.findUnique({
-        where: { id: parseInt(id, 10) },
+        where: { id },
     })
   }
 
@@ -38,7 +38,7 @@ export class RoleController {
    @Param('id') id: string
   ) {
     return this.prisma.role.delete({
-        where: { id: parseInt(id, 10) }
+        where: { id }
     })
   }
 }

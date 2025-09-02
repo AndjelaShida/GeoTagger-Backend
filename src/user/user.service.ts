@@ -1,10 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {  Prisma, User } from 'generated/prisma/client';
+import { Prisma, User } from 'generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { RESPONSE_PASSTHROUGH_METADATA } from '@nestjs/common/constants';
 
 @Injectable()
 export class UserService {
@@ -26,39 +30,41 @@ export class UserService {
     return user;
   }
 
+  async resetPassword(dto: ResetPasswordDto) {
+    const { token, newPassword } = dto; //izlvacimo polja iz DTO-a
 
-async resetPassword(dto: ResetPasswordDto) {
-  const { token, newPassword } = dto ; //izlvacimo polja iz DTO-a
+    const user = await this.prisma.user.findFirst({
+      where: { resetToken: token },
+    });
 
-  const user = await this.prisma.user.findFirst({
-    where: { resetToken: token },
-  });
+    if (!user) {
+      throw new BadRequestException('Invalid or non-existing reset token.');
+    }
 
-  if (!user) {
-    throw new BadRequestException('Invalid or non-existing reset token.');
+    // Provera isteka tokena
+    if (
+      !user.resetTokenExpiry ||
+      user.resetTokenExpiry.getTime() < Date.now()
+    ) {
+      // || -ili8dovoljno je da jedan uslov bude istinit da bi if bio istinit)
+      throw new BadRequestException('Reset token has expired.');
+    }
+
+    // Hešuj novu lozinku
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Ažuriraj lozinku i očisti token i expiry
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    return { message: 'Password successfully reset' };
   }
-
-  // Provera isteka tokena
-  if (!user.resetTokenExpiry || user.resetTokenExpiry.getTime() < Date.now()) { // || -ili8dovoljno je da jedan uslov bude istinit da bi if bio istinit)
-    throw new BadRequestException('Reset token has expired.');
-  }
-
-  // Hešuj novu lozinku
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-  // Ažuriraj lozinku i očisti token i expiry
-  await this.prisma.user.update({
-    where: { id: user.id },
-    data: {
-      password: hashedPassword,
-      resetToken: null,
-      resetTokenExpiry: null,
-    },
-  });
-
-  return { message: 'Password successfully reset' };
-}
-
 
   async update(currentUser: User, dto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({
@@ -83,7 +89,7 @@ async resetPassword(dto: ResetPasswordDto) {
   }
 
   //DOHVAT TRENUTNIH POENTA KORISNIKA
-  async getPoints(userId: number) {
+  async getPoints(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { points: true }, //-vrati mi samo polje points a ne celu user tabelu
@@ -110,17 +116,25 @@ async resetPassword(dto: ResetPasswordDto) {
 
     return locations; // vraća niz lokacija
   }
-async removeUser(id: number, currentUser: User) {
-  if (currentUser.role !== 'admin' && currentUser.id !== id) {
-    throw new UnauthorizedException('You are not authorized to delete this user');
-  }
+  async removeUser(id: string, currentUser: User) {
+    const userWhitRoles = await this.prisma.user.findUnique({
+      where: { id: currentUser.id },
+      include: { roles: true }, //kad god treba da proverim uloge koristim include. Zato sto prisma ne vraca relacije
+    });
 
-  try {
-    return await this.prisma.user.delete({ where: { id } });
-  } catch (e: any) {
-    if (e?.code === 'P2025') throw new NotFoundException('User not found');
-    throw e;
-  }
-}
+    const isAdmin = userWhitRoles.roles?.some((r) => r.description === 'admin');
 
+    if (!isAdmin && currentUser.id !== id) {
+      throw new UnauthorizedException(
+        'You are not authorized to delete this user',
+      );
+    }
+
+    try {
+      return await this.prisma.user.delete({ where: { id } });
+    } catch (e: any) {
+      if (e?.code === 'P2025') throw new NotFoundException('User not found');
+      throw e;
+    }
+  }
 }
