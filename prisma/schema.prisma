@@ -17,7 +17,7 @@ datasource db {
 }
 
 model User {
-  id               Int       @id @default(autoincrement())
+  id               String       @id @default(cuid())
   username         String    @unique
   email            String    @unique
   password         String
@@ -26,65 +26,79 @@ model User {
   updatedAt        DateTime  @updatedAt
   resetToken       String?
   resetTokenExpiry DateTime? //vreme do kad token
-  role             String @default("user") //po defaltu novi user dobije ulogu user
 
   locations Location[] // 1 user ima vise Location(OneToMany)
   guesses   Guess[] //1 user ima vise Guess(OneToMany)
   logs      ActionLog[] // //1 user ima vise ActionLog(OneToMany)
 
-  UserOfAuth UserOfAuth[]
-  roles      Role[]       @relation("UserRoles") //1 korisnik moze imati vise uloga
+  UserOfAuth     UserOfAuth[]
+  roles          Role[]          @relation("UserRoles") //1 korisnik moze imati vise uloga
+  passwordResets PasswordReset[]
 }
 
 model Role {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
+  id          String       @id @default(cuid())
   description String?
   users       User[]  @relation("UserRoles") //veza sa user modelom
 }
 
 model UserOfAuth {
-  id         Int    @id @default(autoincrement())
+  id        String       @id @default(cuid())
   provider   String
   providerId String
+  userId     String
   user       User   @relation(fields: [userId], references: [id])
-  userId     Int
+  
+}
+
+model PasswordReset {
+  id        String       @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Location {
-  id        Int      @id @default(autoincrement())
-  lat       Float //geografska sirina
-  lon       Float //geografska duzina
+  id        String       @id @default(cuid())
+  latitude  Float //geografska sirina
+  longitude Float //geografska duzina
   imageUrl  String //string jer se cuva link slike(npr na amazon s3 url)
   createdAt DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id]) //svaka location pripada 1 useru
-  userId  Int //vise lokacija moze pripadati 1 useru
+  userId  String //vise lokacija moze pripadati 1 useru
   guesses Guess[] //svaka Location moze imati vise Guess
+
+  @@index([createdAt])
+  @@index([latitude, longitude]) //pretrazivanje po kordinatama
 }
 
 model Guess {
-  id        Int      @id @default(autoincrement())
-  lat       Float
-  lon       Float
+  id        String       @id @default(cuid())
+  latitude  Float
+  longitude Float
   distance  Float
   createdAt DateTime @default(now())
 
   user   User @relation(fields: [userId], references: [id]) //svaki pogodak ima 1 usera
-  userId Int //vise pogodaka moze pripadati 1 useru
+  userId String //vise pogodaka moze pripadati 1 useru
 
   location   Location @relation(fields: [locationId], references: [id]) //svaki pogodak je za 1 lokaciju
-  locationId Int //foregin key) -> Location.id, vise pogodaka moze pripradati istoj lokaciji
+  locationId String //foregin key) -> Location.id, vise pogodaka moze pripradati istoj lokaciji
 }
 
 model ActionLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id       String       @id @default(cuid())
+  userId    String? //opciono-da bi se cuvali logovi i za neregistrovane korisnike
   action    String
   component String?
   newValue  String?
   url       String
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id]) //1 akcija ima 1 usera
+  user User? @relation(fields: [userId], references: [id]) //1 akcija ima 1 usera
 }
