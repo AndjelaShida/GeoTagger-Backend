@@ -8,11 +8,11 @@ export class LocationQueryDto {
 
   @IsOptional()
   @IsString()
-  latitude: string; //PROMENI U FLOAT
+  latitude: number; 
 
   @IsOptional()
   @IsString()
-  longitude: string;
+  longitude: number;
 
   @IsOptional()
   @IsString()

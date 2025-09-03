@@ -18,4 +18,14 @@ export class LocationController {
     async getLatestLocation(@Query() queryDto: LocationQueryDto) {
         return this.locationService.getLatestLocation(queryDto);
     }
+
+    @Get('randomLocation/one')
+    async getOneRandomLocation() {
+        return this.locationService.getOneRandomLocation();
+    }
+
+      @Get('randomLocation/multiple')
+    async getMultipleRandomLocation() {
+        return this.locationService.getMultipleRandomLocation();
+    }
 }

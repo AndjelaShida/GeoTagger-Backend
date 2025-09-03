@@ -27,7 +27,7 @@ export class LocationService {
 
     const [data, count] = await this.prisma.$transaction([
       this.prisma.location.findMany({
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' },//orderBy je objekat koji prosledjujem
         skip: offset,
         take: limit,
       }),
@@ -36,8 +36,24 @@ export class LocationService {
     return { data, count };
   }
 
-  //vracanje random lokacije
-  async getRandomLocation() {}
+  //vracanje jedne random lokacije
+  async getOneRandomLocation() {//ne prosledjujem nista jer baza sama izabere nasumicnu lokaciju
+const [ randomLocation] = await this.prisma.$queryRaw<Location[]>`
+    SELECT * FROM "Location" ORDER BY RANDOM() LIMIT 1
+  `;//Location[] uvek vraca niz i uzima prvi element niza
+  return randomLocation ?? null ; //ako je tabela prazna vraca nul
+    
+  }
+
+//vracanje vise lokacija
+async getMultipleRandomLocation() {
+
+}
 
   //pogodi lokaciju lat, lon
 }
+
+
+
+//asc = ascending = rastući redosled (od manjeg ka većem, od A do Z, od starijeg ka novijem).
+// desc = descending = opadajući redosled (od većeg ka manjem, od Z ka A, od novijeg ka starijem).
