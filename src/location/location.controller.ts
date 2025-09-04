@@ -1,31 +1,41 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
-import { LocationQueryDto } from "./dto/locationQuery.dto";
-import { LocationService } from "./location.service";
-import { CreateLocationDto } from "./dto/create-location.dto";
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { LocationQueryDto } from './dto/locationQuery.dto';
+import { LocationService } from './location.service';
+import { CreateLocationDto } from './dto/create-location.dto';
+import { GuessLocationDto } from './dto/guessLocation.dto';
+import { CurrentUser } from 'src/decoration/current-user.decoration';
 
 @Controller()
 export class LocationController {
-    constructor(
-        private locationService: LocationService,
-    ) {}
+  constructor(private locationService: LocationService) {}
 
-    @Post('createLocation')
-    async createNewLocation(@Body() dto: CreateLocationDto, userId: string) {
-        return this.locationService.createNewLocation(dto,userId);
-    }
+  @Post('createLocation')
+  async createNewLocation(@Body() dto: CreateLocationDto, userId: string) {
+    return this.locationService.createNewLocation(dto, userId);
+  }
 
-    @Get('/location')
-    async getLatestLocation(@Query() queryDto: LocationQueryDto) {
-        return this.locationService.getLatestLocation(queryDto);
-    }
+  @Get('/location')
+  async getLatestLocation(@Query() queryDto: LocationQueryDto) {
+    return this.locationService.getLatestLocation(queryDto);
+  }
 
-    @Get('randomLocation/one')
-    async getOneRandomLocation() {
-        return this.locationService.getOneRandomLocation();
-    }
+  @Get('randomLocation/one')
+  async getOneRandomLocation() {
+    return this.locationService.getOneRandomLocation();
+  }
 
-      @Get('randomLocation/multiple')
-    async getMultipleRandomLocation() {
-        return this.locationService.getMultipleRandomLocation();
-    }
+  @Get('randomLocation/multiple')
+  async getMultipleRandomLocation() {
+    return this.locationService.getMultipleRandomLocation();
+  }
+
+  @Post('location/guess/:id')
+  async guessLocation(
+    @Param('id') locationId: string,
+    @Body() dto: GuessLocationDto,
+    @CurrentUser() user,
+  ) {
+    const currentUserId = user.sub;
+    return this.locationService.guessLocation(locationId, dto, currentUserId);
+  }
 }
