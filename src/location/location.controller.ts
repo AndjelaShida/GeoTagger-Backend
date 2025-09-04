@@ -10,7 +10,8 @@ export class LocationController {
   constructor(private locationService: LocationService) {}
 
   @Post('createLocation')
-  async createNewLocation(@Body() dto: CreateLocationDto, userId: string) {
+  async createNewLocation(@Body() dto: CreateLocationDto, @CurrentUser() user) {
+    const userId = user.sub; // user.sub uzima ID korisnika iz tokena
     return this.locationService.createNewLocation(dto, userId);
   }
 

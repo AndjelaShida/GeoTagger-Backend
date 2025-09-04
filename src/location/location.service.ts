@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LocationQueryDto } from './dto/locationQuery.dto';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { GuessLocationDto } from './dto/guessLocation.dto';
-import { IsLatitude } from 'class-validator';
+import { GuessLocationResponseDto } from './dto/guessLocationResponse.dto';
 
 @Injectable()
 export class LocationService {
@@ -116,12 +116,12 @@ export class LocationService {
     // Vrati rezultat korisniku
     return {
       guessId: guess.id,
-      distance, // rastojanje u km
+      locationId: findLocation.id,
       latitude: dto.latitude,
       longitude: dto.longitude,
-      locationId: findLocation.id,
+      distance,
       pointsDeducted: pointsToDeduct,
-    };
+    } as GuessLocationResponseDto;
   }
 
   // Haversine formula helper
