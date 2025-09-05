@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LocationQueryDto } from './dto/locationQuery.dto';
 import { CreateLocationDto } from './dto/create-location.dto';
@@ -74,14 +78,16 @@ export class LocationService {
       throw new NotFoundException('Location not found');
     }
 
-    // Izracunaj rastojanje pomoću Haversine formule
-    const distance = this.haversineDistance(
-      //kad je metoda unutar klase, moram pozvati funkciju kao instanscu klase this
-      dto.latitude,
-      dto.longitude,
-      findLocation.latitude,
-      findLocation.longitude,
-    );
+    // Izracunaj rastojanje, postGis
+    const [row] = await this.prisma.$queryRaw<
+      { meters: number }[]
+    >`SELECT ST_DistanceSphere(
+    ST_MakePoint(${dto.longitude}, ${dto.latitude}),  
+    ST_MakePoint(${findLocation.longitude}, ${findLocation.latitude})   
+  ) AS meters
+  `;
+
+    const distance = row ? row.meters / 1000 : null; //ako row postoji->onda racunaj km->u suprotom vrati null
 
     // Prebroji prethodne pokušaje korisnika za ovu lokaciju
     const previousGuessesCount = await this.prisma.guess.count({
@@ -114,38 +120,33 @@ export class LocationService {
     });
 
     // Vrati rezultat korisniku
-    return {
+    const response = {
       guessId: guess.id,
       locationId: findLocation.id,
       latitude: dto.latitude,
       longitude: dto.longitude,
       distance,
-      pointsDeducted: pointsToDeduct,
-    } as GuessLocationResponseDto;
+      pointsDeduct: pointsToDeduct,
+    };
+
+    return this.validateGuessLocationResponse(response);
   }
 
-  // Haversine formula helper
-  private haversineDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): number {
-    const toRadians = (deg: number) => (deg * Math.PI) / 180;
-
-    const R = 6371; // radijus Zemlje u km
-    const φ1 = toRadians(lat1);
-    const φ2 = toRadians(lat2);
-    const Δφ = toRadians(lat2 - lat1);
-    const Δλ = toRadians(lon2 - lon1);
-
-    const a =
-      Math.sin(Δφ / 2) ** 2 +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // rastojanje u km
+  // Helper funkcija za runtime validaciju
+  private validateGuessLocationResponse(obj: any): GuessLocationResponseDto {
+    if (
+      typeof obj.guessId !== 'string' || //ako guessid nije strin, izraz postaje true(ako tip nije string, nesto je pogresno)
+      typeof obj.locationId !== 'string' ||
+      typeof obj.latitude !== 'number' ||
+      typeof obj.longitude !== 'number' ||
+      typeof obj.distance !== 'number' ||
+      typeof obj.pointsDeducted !== 'number'
+    ) {
+      throw new BadRequestException(
+        'Invalid GuessLocationResposneDto structure',
+      );
+    }
+    return obj;
   }
 }
 
