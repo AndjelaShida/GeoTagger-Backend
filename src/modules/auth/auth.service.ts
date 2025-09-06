@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,24 +13,37 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 
+interface oauthData {
+  provider: string;
+  providerId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture?: string;
+}
+
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
 
+  //REGISTER
   async register(dto: UserRegisterDto) {
     const user = await this.prisma.user.findUnique({
       where: { username: dto.username },
     });
 
     if (user) {
+      this.logger.warn(`User${user} with that username already exist`);
       throw new BadRequestException(`${dto.username} is already taken`);
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, 10); //lozinku pretvaramo u neprepoznatljiv niz karaktera, pomoću matematičkog algoritma.
 
+    //kreiramo novog korisnika u bazi
     const createdUser = await this.prisma.user.create({
       data: {
         username: dto.username,
@@ -39,43 +53,49 @@ export class AuthService {
       },
     });
 
-    //ne vracamo password
+    //vracamo user-a bez passworda(sakrivamo password iz odgovora tj iz return)
     const { password: _, ...safeUser } = createdUser; //-> property password, ali nazovi ga _(i ne koristi ga dalje)
     //safeUser-> uzmi sve ostale property-je osim password i stavi ih u objekat safeUser
     //rezultat-> safeUser je objekat bez passworda
+    this.logger.log(
+      `User "${createdUser.username}" (ID: ${createdUser.id}) registered.`,
+    );
     return safeUser;
   }
 
+  //LOGIN
   async login(dto: UserLoginDto) {
-    const user = await this.validateUser(dto.username, dto.password);
+    //proveri da li korisnik postoji i da li je password tacan i ako je sve ok sacuvaj korisnika u promenljivoj user
+    const user = await this.validateUser(dto);
 
     const payload: JwtPayloadDto = {
       username: user.username,
       sub: user.id,
     };
+    const token = this.jwtService.sign(payload);
+    this.logger.log(
+      `User "${user.username}" (ID: ${user.id}) successfully logged in.`,
+    );
     return {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  async validateUser(username: string, password: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { username },
+  async validateUser(dto: UserLoginDto) {
+    const { usernameOrEmail, password } = dto;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+      },
     });
-    console.log('user from db:', user);
 
-    if (!user) {
-      throw new NotFoundException(`User with username ${username} not found`);
-    }
+    if (!user) throw new NotFoundException(`User not found`);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      throw new BadRequestException('Passwords does not match');
-    }
+    const isMatch = await bcrypt.compare(password, user.password); //proverava lozinku za tog korisnika
+    if (!isMatch) throw new BadRequestException('Passwords does not match');
 
     delete user.password;
+    this.logger.log(`User ${user.id} successfully validated`);
 
     return user;
   }
@@ -95,20 +115,16 @@ export class AuthService {
         resetTokenExpiry: new Date(Date.now() + 60 * 60 * 1000), //1h od sad se cuva token
       },
     });
+    this.logger.log(`Password reset token generated for user "${user.email}".`);
 
     await this.sendResetEmail(user.email, token);
+
+    this.logger.log(`Password reset email sent to ${email}.`);
 
     return { message: 'Reset email sent' };
   }
 
-  async loginWithOAuth(oauthData: {
-    provider: string;
-    providerId: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    picture?: string;
-  }) {
+  async loginWithOAuth(oauthData: oauthData) {
     const { provider, providerId, email, firstName, lastName, picture } =
       oauthData;
 
@@ -118,8 +134,11 @@ export class AuthService {
       include: { user: true },
     });
 
-    // Ako ne postoji -> kreiraj novog korisnika + UserOfAuth
-    if (!userOfAuth) {
+    if (userOfAuth) {
+      this.logger.log(
+        `OAuth login successful via ${provider} for user "${userOfAuth.user.username}".`,
+      );
+    } else {
       const user = await this.prisma.user.create({
         //pravljenje pravog korisnickog naloga
         data: {
@@ -129,6 +148,7 @@ export class AuthService {
           points: 10, // početni poeni za registrovanog korisnika
         },
       });
+      this.logger.log(`New OAuth user created via ${provider}: ${email}.`);
 
       userOfAuth = await this.prisma.userOfAuth.create({
         //veza izmedju korisnika i provajdera(da znamo da je taj korisnik logovan preko googla)
@@ -136,6 +156,7 @@ export class AuthService {
         include: { user: true },
       });
     }
+
     //Ovaj deo povezuje OAuth korisnika sa internim korisničkim objektom i odmah mu generiše JWT token za dalju autentifikaciju.
     const payload = {
       sub: userOfAuth.user.id,
