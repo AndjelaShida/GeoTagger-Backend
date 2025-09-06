@@ -63,6 +63,7 @@ export class LocationService {
   `;
     return multipleRandomLocation ?? null;
   }
+
   //GUESS LOCATION LON,LAT
   async guessLocation(
     locationId: string, // id lokacije iz URL-a
@@ -78,7 +79,33 @@ export class LocationService {
       throw new NotFoundException('Location not found');
     }
 
-    // Izracunaj rastojanje, postGis
+    // Prebroji prethodne pokušaje korisnika za ovu lokaciju
+    const previousGuessesCount = await this.prisma.guess.count({
+      where: {
+        userId: currentUserId,
+        locationId: locationId,
+      },
+    });
+
+    // Odredi koliko poena se oduzima po pravilima
+    let pointsDeduct = 1; //prvi pogodak -1 poen
+    if (previousGuessesCount === 1) pointsDeduct = 2; //drugi pogodak -2 poen
+    if (previousGuessesCount >= 2) pointsDeduct = 3; //treci pogodak -3 poen
+
+    //proveri da li korisnik ima dovoljno poenta pre nego sto nastavimo
+    const user = await this.prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: { points: true },
+    });
+    if (!user) throw new NotFoundException('User is not found');
+
+    if (user.points < pointsDeduct) {
+      throw new BadRequestException(
+        `Not enough points to play. Required: ${pointsDeduct}, you have: ${user.points}`,
+      );
+    }
+
+    // Izracunaj distancu, pomocu postGis
     const [row] = await this.prisma.$queryRaw<
       { meters: number }[]
     >`SELECT ST_DistanceSphere(
@@ -89,44 +116,44 @@ export class LocationService {
 
     const distance = row ? row.meters / 1000 : null; //ako row postoji->onda racunaj km->u suprotom vrati null
 
-    // Prebroji prethodne pokušaje korisnika za ovu lokaciju
-    const previousGuessesCount = await this.prisma.guess.count({
-      where: {
-        userId: currentUserId,
-        locationId: locationId,
-      },
-    });
+    //odredjujemo da li je pogodjeno
+    const CORRECT_THRESHOLD_KM = 0.1;
+    const isCorrect = distance !== null && distance <= CORRECT_THRESHOLD_KM;
 
-    // Odredi koliko poena se oduzima po pravilima
-    let pointsToDeduct = 1; //prvi pogodak -1 poen
-    if (previousGuessesCount === 1) pointsToDeduct = 2; //drugi pogodak -2 poen
-    if (previousGuessesCount >= 2) pointsToDeduct = 3; //treci pogodak -3 poen
+    //ako je pogodjeno dodaj 10 poena ali i oduzmi pointstodeduct
+    const pointsToAward = isCorrect ? 10 : 0;
 
-    // Ažuriraj korisnikove poene
-    await this.prisma.user.update({
-      where: { id: currentUserId },
-      data: { points: { decrement: pointsToDeduct } },
-    });
-
-    // Sačuvaj guess u tabeli
-    const guess = await this.prisma.guess.create({
-      data: {
-        userId: currentUserId,
-        locationId: findLocation.id,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        distance,
-      },
-    });
+    const [createdGuess, updatedUser] = await this.prisma.$transaction([
+      //transaction-grupisanje vise query-ja u jednu baznu transakciju.Moraju oba da uspeju u suprotnom rollback
+      this.prisma.guess.create({
+        data: {
+          userId: currentUserId,
+          locationId: findLocation.id,
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+          distance,
+        },
+      }),
+      // Ažuriraj korisnikove poene
+      this.prisma.user.update({
+        where: { id: currentUserId },
+        data: {
+          points: { decrement: pointsDeduct, increment: pointsToAward },
+        },
+        select: { points: true },
+      }),
+    ]);
 
     // Vrati rezultat korisniku
     const response = {
-      guessId: guess.id,
+      guessId: createdGuess.id,
       locationId: findLocation.id,
       latitude: dto.latitude,
       longitude: dto.longitude,
       distance,
-      pointsDeduct: pointsToDeduct,
+      pointsDeduct: pointsDeduct,
+      pointsAwarded: pointsToAward,
+      userPointsAfter: updatedUser.points,
     };
 
     return this.validateGuessLocationResponse(response);
@@ -135,7 +162,7 @@ export class LocationService {
   // Helper funkcija za runtime validaciju
   private validateGuessLocationResponse(obj: any): GuessLocationResponseDto {
     if (
-      typeof obj.guessId !== 'string' || //ako guessid nije strin, izraz postaje true(ako tip nije string, nesto je pogresno)
+      typeof obj.guessId !== 'string' || //ako guessid nije string, izraz postaje true(ako tip nije string, nesto je pogresno)
       typeof obj.locationId !== 'string' ||
       typeof obj.latitude !== 'number' ||
       typeof obj.longitude !== 'number' ||
