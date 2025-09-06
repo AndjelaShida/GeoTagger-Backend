@@ -10,7 +10,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma, User } from 'generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { Admin } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -19,6 +18,7 @@ export class UserService {
     private prisma: PrismaService, //prismaService dolazi iz PrismaModule
   ) {}
 
+  //GET PROFILE
   async getProfile(username: string, email: string) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -33,6 +33,7 @@ export class UserService {
     return user;
   }
 
+  //RESSET PASSWORD
   async resetPassword(dto: ResetPasswordDto) {
     const { token, newPassword } = dto; //izlvacimo polja iz DTO-a
 
@@ -67,10 +68,11 @@ export class UserService {
         resetTokenExpiry: null,
       },
     });
-
+    this.logger.log(`User ${user.id} successfully reset their password`);
     return { message: 'Password successfully reset' };
   }
 
+  //UPDATE
   async update(currentUser: User, dto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser.id },
@@ -87,10 +89,13 @@ export class UserService {
       ...(dto.resetTokenExpiry && { resetTokenExpiry: dto.resetTokenExpiry }),
     };
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id: currentUser.id },
       data: updateData,
     });
+    this.logger.log(`User ${user.id} successfully update their data`);
+
+    return updateData;
   }
 
   //DOHVAT TRENUTNIH POENTA KORISNIKA
