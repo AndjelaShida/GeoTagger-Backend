@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,9 +10,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma, User } from 'generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Admin } from 'typeorm';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
   constructor(
     private prisma: PrismaService, //prismaService dolazi iz PrismaModule
   ) {}
@@ -38,6 +41,7 @@ export class UserService {
     });
 
     if (!user) {
+      this.logger.warn(`Token ${token} is invalid o non-existing`);
       throw new BadRequestException('Invalid or non-existing reset token.');
     }
 
@@ -46,7 +50,8 @@ export class UserService {
       !user.resetTokenExpiry ||
       user.resetTokenExpiry.getTime() < Date.now()
     ) {
-      // || -ili8dovoljno je da jedan uslov bude istinit da bi if bio istinit)
+      this.logger.warn(`Token ${token} is expired`);
+      // || -ili-dovoljno je da jedan uslov bude istinit da bi if bio istinit)
       throw new BadRequestException('Reset token has expired.');
     }
 
@@ -123,17 +128,27 @@ export class UserService {
     });
 
     const isAdmin = userWhitRoles.roles?.some((r) => r.description === 'admin');
-
+    //ako nije admin i pokusava da obrise drugog korisnika
     if (!isAdmin && currentUser.id !== id) {
+      this.logger.warn(
+        `User  ${currentUser.id} attempted to delete user ${id} but is not authotized.`,
+      );
       throw new UnauthorizedException(
         'You are not authorized to delete this user',
       );
     }
 
     try {
-      return await this.prisma.user.delete({ where: { id } });
+      const deletedUser = await this.prisma.user.delete({ where: { id } });
+      this.logger.log(`User ${currentUser.id} successfully deleted user ${id}`);
+      return deletedUser;
     } catch (e: any) {
-      if (e?.code === 'P2025') throw new NotFoundException('User not found');
+      if (e?.code === 'P2025') {
+        this.logger.warn(
+          `User ${currentUser.id} tried to delete non-existing user ${id}`,
+        );
+        throw new NotFoundException('User not found');
+      }
       throw e;
     }
   }

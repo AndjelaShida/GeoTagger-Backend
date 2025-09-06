@@ -8,24 +8,35 @@ import { LocationQueryDto } from './dto/locationQuery.dto';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { GuessLocationDto } from './dto/guessLocation.dto';
 import { GuessLocationResponseDto } from './dto/guessLocationResponse.dto';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class LocationService {
+  private readonly logger = new Logger(LocationService.name);
   constructor(private prisma: PrismaService) {}
 
   //KREIRANJE LOKACIJE
   async createNewLocation(dto: CreateLocationDto, userId: string) {
     //dto dolazi iz dto, userId dolazi iz JWT tokena(req.user.sub)
-    const newLocation = await this.prisma.location.create({
-      data: {
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        imageUrl: dto.imageUrl,
-        userId,
-      },
-    });
+    const [createdLocation, updatedUser] = await this.prisma.$transaction([
+      this.prisma.location.create({
+        data: {
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+          imageUrl: dto.imageUrl,
+          userId,
+        },
+      }),
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { points: { increment: 10 } }, //increment-dodaj na postojecu vrednost
+      }),
+    ]);
+    this.logger.log(
+      `User ${userId} create new location ${createdLocation.id} and earned 10 points`,
+    );
 
-    return newLocation;
+    return createdLocation;
   }
 
   //VRACANJE LISTE ZADNJIH LOKACIJA(PAGINACIJA)
@@ -76,7 +87,17 @@ export class LocationService {
     });
 
     if (!findLocation) {
+      this.logger.warn(
+        `User ${currentUserId} tried to guess non-existing location ${locationId}`,
+      );
       throw new NotFoundException('Location not found');
+    }
+
+    if (findLocation.userId === currentUserId) {
+      this.logger.warn(
+        `User ${currentUserId} tried to guess their own location ${locationId}`,
+      );
+      throw new BadRequestException('You cannot guess your own location');
     }
 
     // Prebroji prethodne pokušaje korisnika za ovu lokaciju
@@ -100,6 +121,9 @@ export class LocationService {
     if (!user) throw new NotFoundException('User is not found');
 
     if (user.points < pointsDeduct) {
+      this.logger
+        .warn(`User ${currentUserId} tried to guess location ${locationId}
+         with insufficient points (${user.points} < ${pointsDeduct})`);
       throw new BadRequestException(
         `Not enough points to play. Required: ${pointsDeduct}, you have: ${user.points}`,
       );
@@ -117,12 +141,15 @@ export class LocationService {
     const distance = row ? row.meters / 1000 : null; //ako row postoji->onda racunaj km->u suprotom vrati null
 
     //odredjujemo da li je pogodjeno
-    const CORRECT_THRESHOLD_KM = 0.1;
-    const isCorrect = distance !== null && distance <= CORRECT_THRESHOLD_KM;
+    const CORRECT_THRESHOLD_KM = 0.05; //0.1=100m, ako je igracev pogodak bio blizi od 100m racunamo da je pogodjeno
+    const isCorrect = distance !== null && distance <= CORRECT_THRESHOLD_KM; //ako postoji distanc ai manja je od 100m-> true, inace IsCorrect= false
 
     //ako je pogodjeno dodaj 10 poena ali i oduzmi pointstodeduct
-    const pointsToAward = isCorrect ? 10 : 0;
+    const pointsToAward = isCorrect ? 10 : 0; //ako je isCorrest= true korisnik dobija 10 poenta. /ako je isCorrest= false korisnik ne dobija nista.
 
+    this.logger.log(
+      `User ${currentUserId} guessed location ${locationId} - distance ${distance} km,c correct: ${isCorrect}`,
+    );
     const [createdGuess, updatedUser] = await this.prisma.$transaction([
       //transaction-grupisanje vise query-ja u jednu baznu transakciju.Moraju oba da uspeju u suprotnom rollback
       this.prisma.guess.create({
@@ -167,7 +194,7 @@ export class LocationService {
       typeof obj.latitude !== 'number' ||
       typeof obj.longitude !== 'number' ||
       typeof obj.distance !== 'number' ||
-      typeof obj.pointsDeducted !== 'number'
+      typeof obj.pointsDeduct !== 'number'
     ) {
       throw new BadRequestException(
         'Invalid GuessLocationResposneDto structure',
@@ -176,7 +203,3 @@ export class LocationService {
     return obj;
   }
 }
-
-//asc = ascending = rastući redosled (od manjeg ka većem, od A do Z, od starijeg ka novijem).
-// desc = descending = opadajući redosled (od većeg ka manjem, od Z ka A, od novijeg ka starijem).
-//findLocation je objekat iz baze sa pravom lokacijom, dok je dto ono što je korisnik poslao.
