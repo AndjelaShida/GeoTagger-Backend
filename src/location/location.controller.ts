@@ -39,6 +39,11 @@ export class LocationController {
     return this.locationService.getMultipleRandomLocation();
   }
 
+  @Get('/location/:id')
+  async getOneLocation(@CurrentUser() user, @Param('id') locationId: string) {
+    return this.locationService.getOneLocation(user, locationId);
+  }
+
   @Post('location/guess/:id')
   async guessLocation(
     @Param('id') locationId: string,
