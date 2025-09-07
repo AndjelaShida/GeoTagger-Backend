@@ -126,13 +126,14 @@ export class UserService {
 
     return locations; // vraća niz lokacija
   }
+  //DELETE
   async removeUser(id: string, currentUser: User) {
     const userWhitRoles = await this.prisma.user.findUnique({
       where: { id: currentUser.id },
       include: { roles: true }, //kad god treba da proverim uloge koristim include. Zato sto prisma ne vraca relacije
     });
 
-    const isAdmin = userWhitRoles.roles?.some((r) => r.description === 'admin');
+    const isAdmin = userWhitRoles.roles?.some((r) => r.name === 'admin');
     //ako nije admin i pokusava da obrise drugog korisnika
     if (!isAdmin && currentUser.id !== id) {
       this.logger.warn(

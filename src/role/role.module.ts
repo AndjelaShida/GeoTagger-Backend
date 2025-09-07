@@ -1,10 +1,9 @@
-import { Module } from '@nestjs/common';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { Global, Module } from '@nestjs/common';
 import { RoleController } from './role.controller';
 import { RoleService } from './role.service';
 
+@Global()
 @Module({
-  imports: [PrismaModule],
   controllers: [RoleController],
   providers: [RoleService],
   exports: [RoleService],

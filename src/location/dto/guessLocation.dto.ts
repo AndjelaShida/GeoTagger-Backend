@@ -1,14 +1,14 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsString } from 'class-validator';
 
 export class GuessLocationDto {
-@IsString()
-id: string; 
+  @IsString()
+  id: string;
 
-@IsNumber()
-latitude: number ;
+  @IsNumber()
+  latitude: number;
 
-@IsNumber()
-longitude: number ;
+  @IsNumber()
+  longitude: number;
 }
 
 //sadrzi podatke koje korisnik salje

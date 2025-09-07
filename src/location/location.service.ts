@@ -38,6 +38,17 @@ export class LocationService {
 
     return createdLocation;
   }
+  //VRACANJE DETALJA JEDNA LOKACIJE
+  async getOneLocation(locationId: string, currentUserId: string) {
+    const findLocation = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      include: { guesses: true },
+    });
+    this.logger.warn(`User with ${currentUserId} asked for location details.`);
+    if (!findLocation) throw new NotFoundException('Location is not found.');
+
+    return findLocation;
+  }
 
   //VRACANJE LISTE ZADNJIH LOKACIJA(PAGINACIJA)
   async getLatestLocation(locationQueryDto: LocationQueryDto) {
@@ -201,5 +212,27 @@ export class LocationService {
       );
     }
     return obj;
+  }
+  //DELETE LOCATION
+  async deleteLocation(locationId: string, currentUserId: string) {
+    //trazenje lokacije+greska ako je nema+log
+    const findLocation = await this.prisma.location.findUnique({
+      where: { id: locationId },
+    });
+
+    this.logger.warn(`Location with ${locationId} is not found.`);
+    if (!findLocation) throw new NotFoundException('Location not found.');
+
+    //provera vlasnistva
+    if (findLocation.userId !== currentUserId) {
+      throw new BadRequestException(
+        'You are not allowed to delete this location.',
+      );
+    }
+    const deletedLocation = await this.prisma.location.delete({
+      where: { id: locationId },
+    });
+    this.logger.log(`Location ${locationId} successfully deleted.`);
+    return { id: locationId, message: 'Deleted' };
   }
 }

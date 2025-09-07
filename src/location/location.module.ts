@@ -1,12 +1,11 @@
-import { Module } from "@nestjs/common";
-import { PrismaModule } from "src/prisma/prisma.module";
-import { LocationController } from "./location.controller";
-import { LocationService } from "./location.service";
+import { Global, Module } from '@nestjs/common';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { LocationController } from './location.controller';
+import { LocationService } from './location.service';
 
+@Global()
 @Module({
-    imports: [PrismaModule],
-    controllers: [LocationController],
-    providers: [LocationService],
-
+  controllers: [LocationController],
+  providers: [LocationService],
 })
-export class LocationModule {} ;
+export class LocationModule {}

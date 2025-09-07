@@ -7,11 +7,9 @@ export class LocationQueryDto {
   id: string;
 
   @IsOptional()
-  @IsString()
   latitude: number; 
 
   @IsOptional()
-  @IsString()
   longitude: number;
 
   @IsOptional()
@@ -19,7 +17,6 @@ export class LocationQueryDto {
   imageUrl: string;
 
   @IsOptional()
-  @IsString()
   createdAt: Date;
 
   @IsOptional()
