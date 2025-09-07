@@ -2,7 +2,6 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
-import { ValidateUserDto } from 'src/user/dto/validate-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './strategies/guardStrategies/google-oauth.guard';
 import { FacebookAuthGuard } from './strategies/guardStrategies/facebook-oauth.guard';
@@ -29,8 +28,8 @@ export class AuthController {
   }
 
   @Post('validateUser')
-  async validateUser(@Body() dto: ValidateUserDto) {
-    return this.authService.validateUser(dto.email, dto.password);
+  async validateUser(@Body() dto: UserLoginDto) {
+    return this.authService.validateUser(dto);
   }
 
   @Get('google') //ovaj endpoint vodi korisnika na google oauth stranu

@@ -77,7 +77,7 @@ export class AuthService {
       `User "${user.username}" (ID: ${user.id}) successfully logged in.`,
     );
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
     };
   }
 
@@ -97,9 +97,13 @@ export class AuthService {
     delete user.password;
     this.logger.log(`User ${user.id} successfully validated`);
 
-    return user;
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+    };
   }
-
+//FORGOT PASSWORD
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
