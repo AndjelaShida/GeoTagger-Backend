@@ -12,6 +12,8 @@ import { JwtPayloadDto } from './dto/jwt-payload.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
+import { User } from 'generated/prisma';
+import { UserResponseDto } from '../userResponseDto.dto';
 
 interface oauthData {
   provider: string;
@@ -31,7 +33,7 @@ export class AuthService {
   ) {}
 
   //REGISTER
-  async register(dto: UserRegisterDto) {
+  async register(dto: UserRegisterDto): Promise<UserResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { username: dto.username },
     });
@@ -64,7 +66,7 @@ export class AuthService {
   }
 
   //LOGIN
-  async login(dto: UserLoginDto) {
+  async login(dto: UserLoginDto): Promise<{ access_token: string }> {
     //proveri da li korisnik postoji i da li je password tacan i ako je sve ok sacuvaj korisnika u promenljivoj user
     const user = await this.validateUser(dto);
 
@@ -81,7 +83,9 @@ export class AuthService {
     };
   }
 
-  async validateUser(dto: UserLoginDto) {
+  async validateUser(
+    dto: UserLoginDto,
+  ): Promise<{ id: string; username: string; email: string }> {
     const { username, password } = dto;
     const user = await this.prisma.user.findFirst({
       where: { username },
@@ -101,8 +105,8 @@ export class AuthService {
       email: user.email,
     };
   }
-//FORGOT PASSWORD
-  async forgotPassword(email: string) {
+  //FORGOT PASSWORD
+  async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -123,10 +127,12 @@ export class AuthService {
 
     this.logger.log(`Password reset email sent to ${email}.`);
 
-    return { message: 'Reset email sent' };
+    return { message: 'Reset email sent.' };
   }
 
-  async loginWithOAuth(oauthData: oauthData) {
+  async loginWithOAuth(
+    oauthData: oauthData,
+  ): Promise<{ access_token: string; user: User }> {
     const { provider, providerId, email, firstName, lastName, picture } =
       oauthData;
 
