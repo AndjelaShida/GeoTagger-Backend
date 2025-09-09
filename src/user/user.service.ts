@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Prisma, User } from 'generated/prisma/client';
+import { Location, Prisma, User } from 'generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
@@ -19,7 +19,7 @@ export class UserService {
   ) {}
 
   //GET PROFILE
-  async getProfile(username: string, email: string) {
+  async getProfile(username: string, email: string): Promise<User> {
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [{ username }, { email }],
@@ -34,7 +34,7 @@ export class UserService {
   }
 
   //RESSET PASSWORD
-  async resetPassword(dto: ResetPasswordDto) {
+  async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
     const { token, newPassword } = dto; //izlvacimo polja iz DTO-a
 
     const user = await this.prisma.user.findFirst({
@@ -73,7 +73,7 @@ export class UserService {
   }
 
   //UPDATE
-  async update(currentUser: User, dto: UpdateUserDto) {
+  async update(currentUser: User, dto: UpdateUserDto): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser.id },
     });
@@ -95,24 +95,24 @@ export class UserService {
     });
     this.logger.log(`User ${user.id} successfully update their data`);
 
-    return updateData;
+    return updatedUser;
   }
 
   //DOHVAT TRENUTNIH POENTA KORISNIKA
-  async getPoints(userId: string) {
+  async getPoints(userId: string): Promise<{ points: number }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { points: true }, //-vrati mi samo polje points a ne celu user tabelu
     });
 
     if (!user) {
-      throw new Error('User is not found');
+      throw new NotFoundException('User is not found');
     }
     return { points: user.points }; //ako je korisnik pronadjen, vraca se njegov br poena u JSON obliku
   }
 
   //DOHVAT LISTE NAJNOVIJIH LOKACIJA
-  async getLocations(page?: number, limit?: number) {
+  async getLocations(page?: number, limit?: number): Promise<Location[]> {
     //opcioni paramteri, page->koja str lokacija, limit->koliko lokacija po str
     // Ako nema page/limit, vrati sve
     const take = limit ?? 10; // koliko lokacija uzimamo, default 10 po strani
@@ -127,15 +127,17 @@ export class UserService {
     return locations; // vraća niz lokacija
   }
   //DELETE
-  async removeUser(id: string, currentUser: User) {
+  async removeUser(id: string, currentUser: User): Promise<User> {
     const userWhitRoles = await this.prisma.user.findUnique({
       where: { id: currentUser.id },
       include: { roles: true }, //kad god treba da proverim uloge koristim include. Zato sto prisma ne vraca relacije
     });
+    if (!userWhitRoles) throw new NotFoundException('User is not found.');
 
     const isAdmin = userWhitRoles.roles?.some((r) => r.name === 'admin');
     //ako nije admin i pokusava da obrise drugog korisnika
     if (!isAdmin && currentUser.id !== id) {
+     
       this.logger.warn(
         `User  ${currentUser.id} attempted to delete user ${id} but is not authotized.`,
       );
@@ -147,6 +149,7 @@ export class UserService {
     try {
       const deletedUser = await this.prisma.user.delete({ where: { id } });
       this.logger.log(`User ${currentUser.id} successfully deleted user ${id}`);
+
       return deletedUser;
     } catch (e: any) {
       if (e?.code === 'P2025') {
