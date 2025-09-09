@@ -1,12 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Guess, Location } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { TopUserDto } from './dto/topUsers.dto';
 
 @Injectable()
 export class GuessService {
   constructor(private prisma: PrismaService) {}
 
   //VRATI SVE POGODJENE LOKACIJE OD KORISNIKA
-  async getAllGuessLocation(userId: string, page = 1, limit = 10) {
+  async getAllGuessLocation(
+    userId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{
+    data: (Guess & { location: Location })[];
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -24,6 +36,7 @@ export class GuessService {
     const total = await this.prisma.guess.count({
       where: { userId },
     });
+
     return {
       data: guesses,
       page,
@@ -33,5 +46,16 @@ export class GuessService {
     };
   }
 
-  //VRATI SVE POGODJENE LOKACIJE OD KORISNIKA
+  //TOP 10 KORISNIKA
+  async GetTopUserByPoints(limit = 10): Promise<TopUserDto[]> {
+    return this.prisma.user.findMany({
+      orderBy: { points: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        username: true,
+        points: true,
+      },
+    });
+  }
 }

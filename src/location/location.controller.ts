@@ -12,7 +12,6 @@ import { LocationService } from './location.service';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { GuessLocationDto } from './dto/guessLocation.dto';
 import { CurrentUser } from 'src/decoration/current-user.decoration';
-import { Throttle } from '@nestjs/throttler';
 
 @Controller()
 export class LocationController {
@@ -41,7 +40,7 @@ export class LocationController {
 
   @Get('/location/:id')
   async getOneLocation(@CurrentUser() user, @Param('id') locationId: string) {
-    return this.locationService.getOneLocation(user, locationId);
+    return this.locationService.getOneLocation(locationId, user.sub);
   }
 
   @Post('location/guess/:id')
@@ -57,6 +56,6 @@ export class LocationController {
   @Delete('/location/:id')
   async deleteLocation(@Param('id') id: string, @CurrentUser() user) {
     const currentUserId = user.sub;
-    return this.locationService.deleteLocation(id, user);
+    return this.locationService.deleteLocation(id, user.sub);
   }
 }

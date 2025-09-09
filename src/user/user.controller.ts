@@ -10,7 +10,6 @@ import { ApiTags } from "@nestjs/swagger";
 @Controller('users')
 export class UserController {
     constructor(
-        private prisma: PrismaService,
         private userService: UserService,
     ) {}
 

@@ -9,6 +9,7 @@ import { CreateLocationDto } from './dto/create-location.dto';
 import { GuessLocationDto } from './dto/guessLocation.dto';
 import { GuessLocationResponseDto } from './dto/guessLocationResponse.dto';
 import { Logger } from '@nestjs/common';
+import { Guess, Location } from 'generated/prisma';
 
 @Injectable()
 export class LocationService {
@@ -16,7 +17,10 @@ export class LocationService {
   constructor(private prisma: PrismaService) {}
 
   //KREIRANJE LOKACIJE
-  async createNewLocation(dto: CreateLocationDto, userId: string) {
+  async createNewLocation(
+    dto: CreateLocationDto,
+    userId: string,
+  ): Promise<Location> {
     //dto dolazi iz dto, userId dolazi iz JWT tokena(req.user.sub)
     const [createdLocation, updatedUser] = await this.prisma.$transaction([
       this.prisma.location.create({
@@ -39,7 +43,10 @@ export class LocationService {
     return createdLocation;
   }
   //VRACANJE DETALJA JEDNA LOKACIJE
-  async getOneLocation(locationId: string, currentUserId: string) {
+  async getOneLocation(
+    locationId: string,
+    currentUserId: string,
+  ): Promise<Location & { guesses: Guess[] }> {
     const findLocation = await this.prisma.location.findUnique({
       where: { id: locationId },
       include: { guesses: true },
@@ -51,7 +58,10 @@ export class LocationService {
   }
 
   //VRACANJE LISTE ZADNJIH LOKACIJA(PAGINACIJA)
-  async getLatestLocation(locationQueryDto: LocationQueryDto) {
+  async getLatestLocation(locationQueryDto: LocationQueryDto): Promise<{
+    data: Location[];
+    count: number;
+  }> {
     const { limit = 10, offset = 0 } = locationQueryDto;
 
     const [data, count] = await this.prisma.$transaction([
@@ -66,7 +76,7 @@ export class LocationService {
   }
 
   //VRACANJE JEDNE RANDOM LOKACIJE
-  async getOneRandomLocation() {
+  async getOneRandomLocation(): Promise<Location | null> {
     //ne prosledjujem nista jer baza sama izabere nasumicnu lokaciju
     const [randomLocation] = await this.prisma.$queryRaw<Location[]>` 
     SELECT * FROM "Location" ORDER BY RANDOM() LIMIT 1
@@ -78,7 +88,7 @@ export class LocationService {
   // ?? -> vratili levi operand, osim ako je null ili undefined , tad vrati desni
 
   //VRACANJE VISE RANDOM LOKACIJA
-  async getMultipleRandomLocation() {
+  async getMultipleRandomLocation(): Promise<Location[] | null> {
     // const bez [] jer zelim prvih 5 lokacija e ne samo jednu
     const multipleRandomLocation = await this.prisma.$queryRaw<Location[]>`
   SELECT * FROM "Location" ORDER BY RANDOM() LIMIT 5
@@ -91,7 +101,7 @@ export class LocationService {
     locationId: string, // id lokacije iz URL-a
     dto: GuessLocationDto, // latitude i longitude iz body-ja
     currentUserId: string, // id korisnika iz JWT
-  ) {
+  ): Promise<GuessLocationResponseDto> {
     // Pronađi lokaciju u bazi
     const findLocation = await this.prisma.location.findUnique({
       where: { id: locationId },
@@ -214,14 +224,17 @@ export class LocationService {
     return obj;
   }
   //DELETE LOCATION
-  async deleteLocation(locationId: string, currentUserId: string) {
+  async deleteLocation(
+    locationId: string,
+    currentUserId: string,
+  ): Promise<{ id: string; message: string }> {
     //trazenje lokacije+greska ako je nema+log
     const findLocation = await this.prisma.location.findUnique({
       where: { id: locationId },
     });
 
-    this.logger.warn(`Location with ${locationId} is not found.`);
     if (!findLocation) throw new NotFoundException('Location not found.');
+    this.logger.warn(`Location with ${locationId} is not found.`);
 
     //provera vlasnistva
     if (findLocation.userId !== currentUserId) {
