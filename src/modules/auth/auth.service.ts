@@ -43,10 +43,21 @@ export class AuthService {
       throw new BadRequestException(`${dto.username} is already taken`);
     }
 
+    //validacija passworda
+    if (!dto.password || dto.password.trim().length === 0) {
+      throw new BadRequestException('Password cannot be empty.');
+    }
+
+    //validacija emaila
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(dto.email)) {
+      throw new BadRequestException('Email format is invalid.');
+    }
+
     const hashedPassword = await bcrypt.hash(dto.password, 10); //lozinku pretvaramo u neprepoznatljiv niz karaktera, pomoću matematičkog algoritma.
 
     //kreiramo novog korisnika u bazi
-    const createdUser = await this.prisma.user.create({
+    const createdUser: User = await this.prisma.user.create({
       data: {
         username: dto.username,
         email: dto.email,
@@ -55,10 +66,16 @@ export class AuthService {
       },
     });
 
-    //vracamo user-a bez passworda(sakrivamo password iz odgovora tj iz return)
-    const { password: _, ...safeUser } = createdUser; //-> property password, ali nazovi ga _(i ne koristi ga dalje)
-    //safeUser-> uzmi sve ostale property-je osim password i stavi ih u objekat safeUser
-    //rezultat-> safeUser je objekat bez passworda
+    const safeUser: UserResponseDto = {
+      id: createdUser.id,
+      username: createdUser.username,
+      email: createdUser.email,
+      points: createdUser.points,
+      createdAt: createdUser.createdAt,
+      updatedAt: createdUser.updatedAt,
+      resetToken: createdUser.resetToken,
+      resetTokenExpiry: createdUser.resetTokenExpiry,
+    };
     this.logger.log(
       `User "${createdUser.username}" (ID: ${createdUser.id}) registered.`,
     );
