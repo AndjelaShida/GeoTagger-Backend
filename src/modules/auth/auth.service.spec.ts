@@ -2,7 +2,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthService } from './auth.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
-import { ApiBadGatewayResponse } from '@nestjs/swagger';
 
 describe('AuthService - register', () => {
   let service: AuthService;
@@ -20,8 +19,45 @@ describe('AuthService - register', () => {
   });
 
   describe('register', () => {
+    it('should throw error if username is extremely long', async () => {
+      const longUsername = 'a'.repeat(300); //300 karaktera
+      const dto = {
+        username: longUsername,
+        email: 'test@test.com',
+        password: 'pass123',
+      };
+
+      prisma.user.findUnique = jest.fn().mockResolvedValue(null);
+
+      await expect(service.register(dto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should allow or reject special unicode characters in username/emai', async () => {
+      const dto = {
+        username: '用户😊',
+        email: '特殊@test.com',
+        password: 'pass123',
+      };
+
+      prisma.user.findUnique = jest.fn().mockResolvedValue(null);
+      prisma.user.create = jest.fn().mockResolvedValue({
+        id: '123',
+        username: dto.username,
+        email: dto.email,
+        password: 'hashed',
+        points: 10,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const result = await service.register(dto);
+
+      expect(result.username).toBe(dto.username);
+      expect(result.email).toBe(dto.email);
+    });
+
     //describe-grupa testova, ovaj blok okuplja sve testove koji se ticu register metode
-    it('treba da registruje korisnika kad su podaci validni', async () => {
+    it('should register the user when the data is valid', async () => {
       //sve it() funkcije unutar njega opisuju pojedinacne slucajeve testiranje
       prisma.user.findUnique = jest.fn().mockResolvedValue(null);
       prisma.user.create = jest.fn().mockResolvedValue({
@@ -42,7 +78,9 @@ describe('AuthService - register', () => {
 
       const result = await service.register(dto);
 
-      await expect(service.register(dto)).rejects.toThrow(BadRequestException);
+      expect(result).toHaveProperty('id', '123'); //proveravam jel rezultat kreiran
+      expect(result).toHaveProperty('username', 'newuser');
+      expect(result).toHaveProperty('points', 10);
     });
 
     it('should throw an error if the username already exists', async () => {

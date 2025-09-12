@@ -48,6 +48,11 @@ export class AuthService {
       throw new BadRequestException('Password cannot be empty.');
     }
 
+    //validacija username
+    if (dto.username.length > 50) {
+      throw new BadRequestException('Username is to long');
+    }
+
     //validacija emaila
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(dto.email)) {
