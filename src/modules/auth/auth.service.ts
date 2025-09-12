@@ -159,6 +159,11 @@ export class AuthService {
       include: { user: true },
     });
 
+    const uniqueUsername = await this.generateUniqueUsername(
+      firstName,
+      lastName,
+    );
+
     if (userOfAuth) {
       this.logger.log(
         `OAuth login successful via ${provider} for user "${userOfAuth.user.username}".`,
@@ -167,7 +172,7 @@ export class AuthService {
       const user = await this.prisma.user.create({
         //pravljenje pravog korisnickog naloga
         data: {
-          username: firstName + lastName, // ili neki drugi default username
+          username: uniqueUsername,
           email,
           password: null,
           points: 10, // početni poeni za registrovanog korisnika
@@ -192,6 +197,8 @@ export class AuthService {
     return { access_token: token, user: userOfAuth.user };
   }
 
+  /////HELPER FUNCTION//////
+
   private generateResetToken(): string {
     return crypto.randomBytes(32).toString('hex'); // funkcija pravi token od 64 karaktera
   }
@@ -215,5 +222,29 @@ export class AuthService {
     });
 
     console.log(`Reset email sent to ${email}`);
+  }
+
+  private async generateUniqueUsername(
+    firstName: string,
+    lastName: string,
+  ): Promise<string> {
+    //napravi osnovu username
+    const base = `${firstName}${lastName}`.replace(/\s+/g, ''); //spaja ime i prezime a .replace(/\s+/g, '');-uklanja sve razmake
+
+    //uzmi skraceni UUID
+    let shortUuid = crypto.randomUUID().slice(0, 6); //.slice(0, 6);-uzima prvih 6 karaktera
+    //sastavi kandidata za useranme
+    let candidate = `${base}_${shortUuid}`; //osnova+skracenica
+
+    //proveravaj u bazi dok ne nadjes slobodan suername
+    while (
+      await this.prisma.user.findUnique({
+        where: { username: candidate },
+      })
+    ) {
+      shortUuid = crypto.randomUUID().slice(0, 6);
+      candidate = `${base}_${shortUuid}`;
+    }
+    return candidate;
   }
 }
