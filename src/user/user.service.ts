@@ -69,7 +69,7 @@ export class UserService {
       },
     });
     this.logger.log(`User ${user.id} successfully reset their password`);
-    return { message: 'Password successfully reset' };
+    return { message: 'Password successfully reset.' };
   }
 
   //UPDATE
@@ -137,7 +137,6 @@ export class UserService {
     const isAdmin = userWhitRoles.roles?.some((r) => r.name === 'admin');
     //ako nije admin i pokusava da obrise drugog korisnika
     if (!isAdmin && currentUser.id !== id) {
-     
       this.logger.warn(
         `User  ${currentUser.id} attempted to delete user ${id} but is not authotized.`,
       );

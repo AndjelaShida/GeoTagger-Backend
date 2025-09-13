@@ -32,7 +32,7 @@ describe('AuthService - register', () => {
       await expect(service.register(dto)).rejects.toThrow(BadRequestException);
     });
 
-    it('should allow or reject special unicode characters in username/emai', async () => {
+    it('should allow or reject special unicode characters in username/email', async () => {
       const dto = {
         username: '用户😊',
         email: '特殊@test.com',

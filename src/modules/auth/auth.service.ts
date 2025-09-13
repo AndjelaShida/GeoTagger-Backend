@@ -13,7 +13,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { User } from 'generated/prisma';
-import { UserResponseDto } from '../userResponseDto.dto';
+import { UserResponseDto } from './dto/userResponseDto.dto';
 
 interface oauthData {
   provider: string;
