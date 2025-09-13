@@ -21,6 +21,16 @@ export class LocationService {
     dto: CreateLocationDto,
     userId: string,
   ): Promise<Location> {
+    if (dto.latitude < -90 || dto.latitude > 90) {
+      throw new BadRequestException('Latitude must be between -90 and 90.');
+    }
+
+    if (dto.longitude < -180 || dto.longitude > 180) {
+      throw new BadRequestException('Longitude must be between -90 and 90.');
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User is not found');
+
     //dto dolazi iz dto, userId dolazi iz JWT tokena(req.user.sub)
     const [createdLocation, updatedUser] = await this.prisma.$transaction([
       this.prisma.location.create({

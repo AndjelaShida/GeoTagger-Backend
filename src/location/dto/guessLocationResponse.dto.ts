@@ -5,4 +5,5 @@ export interface GuessLocationResponseDto {
   longitude: number;
   locationId: string;
   pointsDeduct: number;
+  userPointsAfter: number;
 }

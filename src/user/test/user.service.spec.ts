@@ -7,9 +7,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CurrentUser } from 'src/decoration/current-user.decoration';
-import { NotFoundError, take } from 'rxjs';
-import { skip } from 'node:test';
 
 describe('UserService', () => {
   let service: UserService;
