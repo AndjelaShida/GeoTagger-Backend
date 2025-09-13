@@ -50,7 +50,7 @@ export class AuthService {
 
     //validacija username
     if (dto.username.length > 50) {
-      throw new BadRequestException('Username is to long');
+      throw new BadRequestException('Username is to long.');
     }
 
     //validacija emaila

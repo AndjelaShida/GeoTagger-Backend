@@ -46,8 +46,6 @@ async function bootstrap() {
       message: 'Too many request from this IP, please try again later',
     }),
   );
-  //Throttle
-  app.useGlobalGuards(app.get(ThrottlerGuard));
 
   //Swagger i ValidationPipe
   initSwagger(app);

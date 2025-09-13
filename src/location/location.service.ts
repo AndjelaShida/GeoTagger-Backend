@@ -26,10 +26,10 @@ export class LocationService {
     }
 
     if (dto.longitude < -180 || dto.longitude > 180) {
-      throw new BadRequestException('Longitude must be between -90 and 90.');
+      throw new BadRequestException('Longitude must be between -180 and 180.');
     }
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User is not found');
+    if (!user) throw new NotFoundException('User is not found.');
 
     //dto dolazi iz dto, userId dolazi iz JWT tokena(req.user.sub)
     const [createdLocation, updatedUser] = await this.prisma.$transaction([
@@ -121,14 +121,14 @@ export class LocationService {
       this.logger.warn(
         `User ${currentUserId} tried to guess non-existing location ${locationId}`,
       );
-      throw new NotFoundException('Location not found');
+      throw new NotFoundException('Location not found.');
     }
 
     if (findLocation.userId === currentUserId) {
       this.logger.warn(
         `User ${currentUserId} tried to guess their own location ${locationId}`,
       );
-      throw new BadRequestException('You cannot guess your own location');
+      throw new BadRequestException('You cannot guess your own location.');
     }
 
     // Prebroji prethodne pokušaje korisnika za ovu lokaciju
@@ -149,7 +149,7 @@ export class LocationService {
       where: { id: currentUserId },
       select: { points: true },
     });
-    if (!user) throw new NotFoundException('User is not found');
+    if (!user) throw new NotFoundException('User is not found.');
 
     if (user.points < pointsDeduct) {
       this.logger
@@ -179,7 +179,7 @@ export class LocationService {
     const pointsToAward = isCorrect ? 10 : 0; //ako je isCorrest= true korisnik dobija 10 poenta. /ako je isCorrest= false korisnik ne dobija nista.
 
     this.logger.log(
-      `User ${currentUserId} guessed location ${locationId} - distance ${distance} km,c correct: ${isCorrect}`,
+      `User ${currentUserId} guessed location ${locationId} - distance ${distance} km, correct: ${isCorrect}`,
     );
     const [createdGuess, updatedUser] = await this.prisma.$transaction([
       //transaction-grupisanje vise query-ja u jednu baznu transakciju.Moraju oba da uspeju u suprotnom rollback

@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { LocationModule } from './location/location.module';
 import { GuessModule } from './guess/guess.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -31,7 +32,14 @@ import { ThrottlerModule } from '@nestjs/throttler';
     UserModule,
     LocationModule,
     GuessModule,
+    ThrottlerModule,
   ],
   controllers: [AppController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerModule,
+    },
+  ],
 })
 export class AppModule {}
