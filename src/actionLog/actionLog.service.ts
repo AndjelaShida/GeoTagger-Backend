@@ -1,12 +1,16 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { ActionLog } from 'generated/prisma';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ActionLogService {
   constructor(private prisma: PrismaService) {}
 
-  //ADMIN MOZE DA VIDI POSLEDNJIH 100 LOGOVA-admin only
+  //ADMIN MOZE DA VIDI POSLEDNJIH 100 LOGOVA
   async getLast100Log(currentUserId: string): Promise<ActionLog[]> {
     //pronadji korisnika sa njegovim ulogama
     const user = await this.prisma.user.findUnique({
@@ -28,7 +32,30 @@ export class ActionLogService {
     });
   }
 
-  //LOGOVI PO KORINSIKU
+  //LOGOVI PO KORISNIKU
+  async getLogsPerUser(
+    userId: string,
+    action?: ActionType,
+    component?: ComponentType,
+  ): Promise<ActionLog[]> {
+    //proveri da li korisnik postoji u bazu
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) throw new BadRequestException('User not found.');
+    //napravi query za actionlog model
+    const where: any = { userId };
+    if (action) where.action = action;
+    if (component) where.component = component;
+
+    const actionlog = await this.prisma.actionLog.findMany({
+      where,
+      take: 100,
+      orderBy: { createdAt: 'desc' },
+    });
+    return actionlog;
+  }
+
   //FILTRIRANJE PO TIPU AKCIJE(click, scroll, input, change)
   //FILTRIRANJE PO TIPNU KOMPONENTE(button,link,input)
   //FILTRIRANJE PO NEW VALUE
