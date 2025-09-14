@@ -5,7 +5,6 @@ import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './exceptions/all-exceptions.filter';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { ThrottlerGuard } from '@nestjs/throttler';
 
 const initSwagger = (app: INestApplication) => {
   const config = new DocumentBuilder()

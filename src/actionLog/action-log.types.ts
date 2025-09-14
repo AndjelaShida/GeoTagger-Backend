@@ -1,0 +1,17 @@
+export enum ActionType {
+  CLICK = 'CLICK',
+  SCROLL = 'SCROLL',
+  ADDED_VALUE = ' ADDED_VALUE',
+  CHANGED_VALUE = 'CHANGED_VALUE',
+  REMOVED_VALUE = 'REMOVED_VALUE',
+}
+
+export enum ComponentType {
+  BUTTON = 'BUTTON',
+  LINK = 'LINK',
+  INPUT = 'INPUT',
+  CHECKBOX = 'CHECKBOX',
+  RADIO = 'RADIO',
+  DROPDOWN = 'DROPDOWN',
+  NONE = 'NONE',
+}

@@ -16,6 +16,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ActionType {
+  CLICK
+  SCROLL
+  ADDED_VALUE
+  CHANGED_VALUE
+  REMOVED_VALUE
+}
+
+enum ComponentType {
+  BUTTON
+  LINK 
+  INPUT
+  CHECKBOX
+  RADIO
+  DROPDOWN
+  NONE
+}
+
+
 model User {
   id               String    @id @default(cuid())
   username         String    @unique
@@ -94,11 +113,13 @@ model Guess {
 model ActionLog {
   id        String   @id @default(cuid())
   userId    String? //opciono-da bi se cuvali logovi i za neregistrovane korisnike
-  action    String
-  component String?
+  action    ActionType
+  component ComponentType
   newValue  String?
   url       String
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id]) //1 akcija ima 1 usera
+
+  @@index([createdAt])
 }
