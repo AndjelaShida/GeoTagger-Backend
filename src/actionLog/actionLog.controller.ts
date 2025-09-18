@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/decoration/current-user.decoration';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActionLogModule } from './actionLog.module';
@@ -39,5 +39,12 @@ export class ActionLogController {
   @Get('actionlog/filter')
   async getFilterLogs(dto: FilterLogsDto) {
     return this.actionLogService.getFilterLogs(dto);
+  }
+
+  @UseGuards(RoleGuard)
+  @Roles(RoleEnum.ADMIN)
+  @Get('actionlog/:logsId')
+  async deleteLogs(@Param('logsId') logsId: string) {
+    return this.actionLogService.deletedLog(logsId);
   }
 }

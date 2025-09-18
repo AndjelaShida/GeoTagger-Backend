@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -9,6 +10,7 @@ import { ActionTypeDto } from './dto/actionTypeDto.dto';
 import { ComponentTypeDto } from './dto/componentTypeDto.dto';
 import { FilterLogsDto } from './dto/filterLogs.dto';
 import { Action } from 'generated/prisma/runtime/library';
+import { ApiBadGatewayResponse } from '@nestjs/swagger';
 
 @Injectable()
 export class ActionLogService {
@@ -76,6 +78,18 @@ export class ActionLogService {
     });
   }
 
-  //ADMIN MOZE BRISATI LOGOVE-admin only
+  //BRISANJE LOGOVA-SAMO ADMIN
+  async deleteLogs(logsId: string): Promise<{ id: string; message: string }> {
+    //trazenje lokacija, greska ako je nema, provera vlasnistva
+    const findLogsId = await this.prisma.actionLog.findUnique({
+      where: { id: logsId },
+    });
+    if (!findLogsId) throw new NotFoundException('Log is not found.');
+
+    await this.prisma.actionLog.delete({ where: { id: logsId } });
+
+    return { id: logsId, message: 'Logs are deleted.' };
+  }
+
   //STATISTIKE I AGREGATI(br akcija po korsiniku, po tipu itd..)-admin only
 }
