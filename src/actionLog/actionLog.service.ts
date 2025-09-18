@@ -7,6 +7,8 @@ import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActionTypeDto } from './dto/actionTypeDto.dto';
 import { ComponentTypeDto } from './dto/componentTypeDto.dto';
+import { FilterLogsDto } from './dto/filterLogs.dto';
+import { Action } from 'generated/prisma/runtime/library';
 
 @Injectable()
 export class ActionLogService {
@@ -58,35 +60,22 @@ export class ActionLogService {
     return actionlog;
   }
 
-  //FILTRIRANJE PO TIPU AKCIJE(click, scroll, input, change)
-  async getActionType(dto: ActionTypeDto, limit = 100): Promise<ActionLog[]> {
-    const { action } = dto; //kraci oblik, izodi polje action iz ActionTypeDto
-    if (!action) throw new BadRequestException('Action type is requide.');
-
+  //FILTRIRANJE PO actiontype, componenttype, newvalue, url, userid
+  async getFilterLogs(dto: FilterLogsDto, limit = 100): Promise<ActionLog[]> {
+    const { action, component, newValue, url, userId } = dto;
     return this.prisma.actionLog.findMany({
-      where: { action },
-      orderBy: { createdAt: 'desc' },
+      where: {
+        ...(action ? { action } : {}),
+        ...(component ? { component } : {}),
+        ...(newValue ? { newValue: { contains: newValue } } : {}),
+        ...(url ? { url: { contains: url } } : {}),
+        ...(userId ? { userId } : {}),
+      },
       take: limit,
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  //FILTRIRANJE PO TIPNU KOMPONENTE(button,link,input)
-  async getComponentType(
-    dto: ComponentTypeDto,
-    limit = 100,
-  ): Promise<ActionLog[]> {
-    const { component } = dto;
-    if (!component) throw new BadRequestException('Component type is requide.');
-
-    return this.prisma.actionLog.findMany({
-      where: { component },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    });
-  }
-
-  //FILTRIRANJE PO NEW VALUE
-  //FILTRIRANJE PO URL LOKACIJI
   //ADMIN MOZE BRISATI LOGOVE-admin only
   //STATISTIKE I AGREGATI(br akcija po korsiniku, po tipu itd..)-admin only
 }
