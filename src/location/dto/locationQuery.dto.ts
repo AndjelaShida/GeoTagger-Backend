@@ -1,4 +1,4 @@
-//dto koji radi sa svim query upitima za location
+ //dto koji radi sa svim query upitima za location
 import { IsOptional, IsPositive, IsString, Min } from 'class-validator';
 
 export class LocationQueryDto {

@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ActionTypeDto } from './dto/actionTypeDto.dto';
+import { ComponentTypeDto } from './dto/componentTypeDto.dto';
 
 @Injectable()
 export class ActionLogService {
@@ -57,7 +59,32 @@ export class ActionLogService {
   }
 
   //FILTRIRANJE PO TIPU AKCIJE(click, scroll, input, change)
+  async getActionType(dto: ActionTypeDto, limit = 100): Promise<ActionLog[]> {
+    const { action } = dto; //kraci oblik, izodi polje action iz ActionTypeDto
+    if (!action) throw new BadRequestException('Action type is requide.');
+
+    return this.prisma.actionLog.findMany({
+      where: { action },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
   //FILTRIRANJE PO TIPNU KOMPONENTE(button,link,input)
+  async getComponentType(
+    dto: ComponentTypeDto,
+    limit = 100,
+  ): Promise<ActionLog[]> {
+    const { component } = dto;
+    if (!component) throw new BadRequestException('Component type is requide.');
+
+    return this.prisma.actionLog.findMany({
+      where: { component },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
   //FILTRIRANJE PO NEW VALUE
   //FILTRIRANJE PO URL LOKACIJI
   //ADMIN MOZE BRISATI LOGOVE-admin only

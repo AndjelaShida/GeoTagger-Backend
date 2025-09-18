@@ -7,6 +7,8 @@ import { RoleGuard } from 'src/role/role.guard';
 import { Roles } from 'src/decoration/role.decorator';
 import { RoleEnum } from 'src/role/role.enum';
 import { ActionType, ComponentType } from 'generated/prisma';
+import { ActionTypeDto } from './dto/actionTypeDto.dto';
+import { ComponentTypeDto } from './dto/componentTypeDto.dto';
 
 @ApiTags('actionlog')
 @Controller('actionlog')
@@ -31,5 +33,15 @@ export class ActionLogController {
     @Query('component') component?: ComponentType,
   ) {
     return this.actionLogService.getLogsPerUser(user.id, action, component);
+  }
+
+  @Get('actionlog/action')
+  async getActionType(dto: ActionTypeDto) {
+    return this.actionLogService.getActionType(dto);
+  }
+
+  @Get('actionlog/component')
+  async getComponentType(dto: ComponentTypeDto) {
+    return this.actionLogService.getComponentType(dto);
   }
 }
