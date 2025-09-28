@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Guess, Location } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TopUserDto } from './dto/topUsers.dto';
 
 @Injectable()
 export class GuessService {
+  private readonly logger = new Logger(GuessService.name);
   constructor(private prisma: PrismaService) {}
 
   //VRATI SVE POGODJENE LOKACIJE OD KORISNIKA
@@ -23,7 +24,10 @@ export class GuessService {
       where: { id: userId },
     });
 
-    if (!user) throw new NotFoundException('User is not found.');
+    if (!user) {
+      this.logger.warn(`User ${userId} not found.`);
+      throw new NotFoundException('User not found.');
+    }
 
     const guesses = await this.prisma.guess.findMany({
       where: { userId },
@@ -47,7 +51,7 @@ export class GuessService {
   }
 
   //TOP 10 KORISNIKA
-  async GetTopUserByPoints(limit = 10): Promise<TopUserDto[]> {
+  async getTopUserByPoints(limit = 10): Promise<TopUserDto[]> {
     return this.prisma.user.findMany({
       orderBy: { points: 'desc' },
       take: limit,
