@@ -6,11 +6,9 @@ import {
 } from '@nestjs/common';
 import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ActionTypeDto } from './dto/actionTypeDto.dto';
-import { ComponentTypeDto } from './dto/componentTypeDto.dto';
 import { FilterLogsDto } from './dto/filterLogs.dto';
-import { Action } from 'generated/prisma/runtime/library';
-import { ApiBadGatewayResponse } from '@nestjs/swagger';
+import { stat } from 'fs';
+import { count } from 'console';
 
 @Injectable()
 export class ActionLogService {
@@ -80,7 +78,7 @@ export class ActionLogService {
 
   //BRISANJE LOGOVA-SAMO ADMIN
   async deleteLogs(logsId: string): Promise<{ id: string; message: string }> {
-    //trazenje lokacija, greska ako je nema, provera vlasnistva
+    //trazenje logova, greska ako je nema, provera vlasnistva
     const findLogsId = await this.prisma.actionLog.findUnique({
       where: { id: logsId },
     });
@@ -91,5 +89,61 @@ export class ActionLogService {
     return { id: logsId, message: 'Logs are deleted.' };
   }
 
-  //STATISTIKE I AGREGATI(br akcija po korsiniku, po tipu itd..)-admin only
+  //STATISTIKE I AGREGATI()-admin only
+  //agregati = matematičke funkcije koje daju sumu/prosek/broj/grupu → statistika je praktična primena agregata da sumiraš podatke.
+  //agregati se pisu sa crticom _count, _sum ...itd
+
+  //STATISTIKA BROJ AKCIJA PO KORISNIKU
+  async getActionCountPerUser(): Promise<{ userId: string; count: number }[]> {
+    const stats = await this.prisma.actionLog.groupBy({
+      by: ['userId'], //grupise sve logove po userId
+      _count: { _all: true }, //prebrojava sve logove u svakoj grupi
+    });
+
+    return stats
+      .map((s) => ({ userId: s.userId, count: s._count._all }))
+      .sort((a, b) => b.count - a.count); //sortira rezultate silazno po broju logova
+  }
+
+  //STATISTIKA BROJ AKCIJA PO TIPU AKCIJE
+  async getActionCountPerActionType(): Promise<
+    { action: string; count: number }[]
+  > {
+    const stats = await this.prisma.actionLog.groupBy({
+      by: ['action'],
+      _count: { _all: true },
+    });
+
+    return stats
+      .map((s) => ({ action: s.action, count: s._count._all }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  //STATISTIKA BROJ AKCIJA PO TIPU KOMPONENTNE
+  async getActionCountPerComponent(): Promise<
+    {
+      component: string;
+      count: number;
+    }[]
+  > {
+    const stats = await this.prisma.actionLog.groupBy({
+      by: ['component'],
+      _count: { _all: true },
+    });
+
+    return stats
+      .map((s) => ({ component: s.component, count: s._count._all }))
+      .sort((a, b) => b.count - a.count);
+  }
+  //STATISTIKA BROJ AKCIJA PO URL-U
+  async getActionCountPerUrl(): Promise<{ url: string; count: number }[]> {
+    const stats = await this.prisma.actionLog.groupBy({
+      by: ['url'],
+      _count: { _all: true },
+    });
+
+    return stats
+      .map((s) => ({ url: s.url, count: s._count._all }))
+      .sort((a, b) => b.count - a.count);
+  }
 }
