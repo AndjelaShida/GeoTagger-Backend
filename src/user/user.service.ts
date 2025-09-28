@@ -106,7 +106,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('User is not found');
+      throw new NotFoundException('User not found');
     }
     return { points: user.points }; //ako je korisnik pronadjen, vraca se njegov br poena u JSON obliku
   }
@@ -132,7 +132,7 @@ export class UserService {
       where: { id: currentUser.id },
       include: { roles: true }, //kad god treba da proverim uloge koristim include. Zato sto prisma ne vraca relacije
     });
-    if (!userWhitRoles) throw new NotFoundException('User is not found.');
+    if (!userWhitRoles) throw new NotFoundException('User not found.');
 
     const isAdmin = userWhitRoles.roles?.some((r) => r.name === 'admin');
     //ako nije admin i pokusava da obrise drugog korisnika

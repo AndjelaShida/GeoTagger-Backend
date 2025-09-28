@@ -8,7 +8,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role-dto';
 import { JwtAuthGuard } from 'src/modules/auth/jwt/jwt-auth.guard';
 import { Roles } from 'src/decoration/role.decorator';
@@ -16,7 +15,6 @@ import { RoleEnum } from './role.enum';
 import { RoleGuard } from './role.guard';
 import { RoleService } from './role.service';
 import { CurrentUser } from 'src/decoration/current-user.decoration';
-import { use } from 'passport';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles(RoleEnum.ADMIN)

@@ -29,7 +29,7 @@ export class LocationService {
       throw new BadRequestException('Longitude must be between -180 and 180.');
     }
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User is not found.');
+    if (!user) throw new NotFoundException('User not found.');
 
     //dto dolazi iz dto, userId dolazi iz JWT tokena(req.user.sub)
     const [createdLocation, updatedUser] = await this.prisma.$transaction([
@@ -62,7 +62,7 @@ export class LocationService {
       include: { guesses: true },
     });
     this.logger.warn(`User with ${currentUserId} asked for location details.`);
-    if (!findLocation) throw new NotFoundException('Location is not found.');
+    if (!findLocation) throw new NotFoundException('Location not found.');
 
     return findLocation;
   }
@@ -149,7 +149,7 @@ export class LocationService {
       where: { id: currentUserId },
       select: { points: true },
     });
-    if (!user) throw new NotFoundException('User is not found.');
+    if (!user) throw new NotFoundException('User not found.');
 
     if (user.points < pointsDeduct) {
       this.logger
@@ -244,7 +244,7 @@ export class LocationService {
     });
 
     if (!findLocation) throw new NotFoundException('Location not found.');
-    this.logger.warn(`Location with ${locationId} is not found.`);
+    this.logger.warn(`Location with ${locationId}  not found.`);
 
     //provera vlasnistva
     if (findLocation.userId !== currentUserId) {

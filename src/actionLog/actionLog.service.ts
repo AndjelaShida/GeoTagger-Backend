@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
@@ -10,6 +11,7 @@ import { FilterLogsDto } from './dto/filterLogs.dto';
 
 @Injectable()
 export class ActionLogService {
+  private readonly logger = new Logger(ActionLogService.name);
   constructor(private prisma: PrismaService) {}
 
   //ADMIN MOZE DA VIDI POSLEDNJIH 100 LOGOVA
@@ -39,7 +41,10 @@ export class ActionLogService {
     userId: string,
     action?: ActionType,
     component?: ComponentType,
+    page = 1,
+    pageSize = 20,
   ): Promise<ActionLog[]> {
+    const skip = (page - 1) * pageSize;
     //proveri da li korisnik postoji u bazu
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -52,14 +57,20 @@ export class ActionLogService {
 
     const actionlog = await this.prisma.actionLog.findMany({
       where,
-      take: 100,
+      skip,
+      take: pageSize,
       orderBy: { createdAt: 'desc' },
     });
     return actionlog;
   }
 
   //FILTRIRANJE PO actiontype, componenttype, newvalue, url, userid
-  async getFilterLogs(dto: FilterLogsDto, limit = 100): Promise<ActionLog[]> {
+  async getFilterLogs(
+    dto: FilterLogsDto,
+    page = 1,
+    pageSize = 20,
+  ): Promise<ActionLog[]> {
+    const skip = (page - 1) * pageSize;
     const { action, component, newValue, url, userId } = dto;
     return this.prisma.actionLog.findMany({
       where: {
@@ -69,7 +80,8 @@ export class ActionLogService {
         ...(url ? { url: { contains: url } } : {}),
         ...(userId ? { userId } : {}),
       },
-      take: limit,
+      skip,
+      take: pageSize,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -80,10 +92,11 @@ export class ActionLogService {
     const findLogsId = await this.prisma.actionLog.findUnique({
       where: { id: logsId },
     });
-    if (!findLogsId) throw new NotFoundException('Log is not found.');
+    if (!findLogsId) throw new NotFoundException('Log not found.');
 
     await this.prisma.actionLog.delete({ where: { id: logsId } });
 
+    this.logger.log(`Log ${logsId} is deleted.`);
     return { id: logsId, message: 'Logs are deleted.' };
   }
 
