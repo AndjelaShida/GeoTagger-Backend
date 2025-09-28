@@ -7,8 +7,6 @@ import {
 import { ActionLog, ActionType, ComponentType } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FilterLogsDto } from './dto/filterLogs.dto';
-import { stat } from 'fs';
-import { count } from 'console';
 
 @Injectable()
 export class ActionLogService {
@@ -94,7 +92,9 @@ export class ActionLogService {
   //agregati se pisu sa crticom _count, _sum ...itd
 
   //STATISTIKA BROJ AKCIJA PO KORISNIKU
-  async getActionCountPerUser(): Promise<{ userId: string; count: number }[]> {
+  async getActionCountPerUser(
+    limit = 10,
+  ): Promise<{ userId: string; count: number }[]> {
     const stats = await this.prisma.actionLog.groupBy({
       by: ['userId'], //grupise sve logove po userId
       _count: { _all: true }, //prebrojava sve logove u svakoj grupi
@@ -102,13 +102,14 @@ export class ActionLogService {
 
     return stats
       .map((s) => ({ userId: s.userId, count: s._count._all }))
-      .sort((a, b) => b.count - a.count); //sortira rezultate silazno po broju logova
+      .sort((a, b) => b.count - a.count) //sortira rezultate silazno po broju logova
+      .slice(0, limit);
   }
 
   //STATISTIKA BROJ AKCIJA PO TIPU AKCIJE
-  async getActionCountPerActionType(): Promise<
-    { action: string; count: number }[]
-  > {
+  async getActionCountPerActionType(
+    limit = 10,
+  ): Promise<{ action: string; count: number }[]> {
     const stats = await this.prisma.actionLog.groupBy({
       by: ['action'],
       _count: { _all: true },
@@ -116,11 +117,12 @@ export class ActionLogService {
 
     return stats
       .map((s) => ({ action: s.action, count: s._count._all }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   }
 
   //STATISTIKA BROJ AKCIJA PO TIPU KOMPONENTNE
-  async getActionCountPerComponent(): Promise<
+  async getActionCountPerComponent(limit = 10): Promise<
     {
       component: string;
       count: number;
@@ -133,10 +135,13 @@ export class ActionLogService {
 
     return stats
       .map((s) => ({ component: s.component, count: s._count._all }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   }
   //STATISTIKA BROJ AKCIJA PO URL-U
-  async getActionCountPerUrl(): Promise<{ url: string; count: number }[]> {
+  async getActionCountPerUrl(
+    limit = 10,
+  ): Promise<{ url: string; count: number }[]> {
     const stats = await this.prisma.actionLog.groupBy({
       by: ['url'],
       _count: { _all: true },
@@ -144,6 +149,26 @@ export class ActionLogService {
 
     return stats
       .map((s) => ({ url: s.url, count: s._count._all }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+  }
+
+  //STATISTIKA ZA SVE
+  async getAllStats(limit = 10): Promise<{
+    perUser: { userId: string; count: number }[];
+    perAction: { action: string; count: number }[];
+    perComponent: { component: string; count: number }[];
+    perUrl: { url: string; count: number }[];
+  }> {
+    const perUser = await this.getActionCountPerUser(limit);
+    const perAction = await this.getActionCountPerActionType(limit);
+    const perComponent = await this.getActionCountPerComponent(limit);
+    const perUrl = await this.getActionCountPerUrl(limit);
+    return {
+      perUser,
+      perAction,
+      perComponent,
+      perUrl,
+    };
   }
 }

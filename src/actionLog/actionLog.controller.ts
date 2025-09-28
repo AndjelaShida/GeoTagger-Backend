@@ -80,4 +80,11 @@ export class ActionLogController {
   async getActionCountPerUrl() {
     return this.actionLogService.getActionCountPerUrl();
   }
+
+  @UseGuards(RoleGuard)
+  @Roles(RoleEnum.ADMIN)
+  @Get('stats/all')
+  async getAllStats() {
+    return this.actionLogService.getAllStats();
+  }
 }
